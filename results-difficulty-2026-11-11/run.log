@@ -1,0 +1,33 @@
+apache__iceberg-python-3295 none      run=0 correct=True  accepted=True  sent_back=0 $0.1099675 30.8s
+astronomy-commons__lsdb-1349 none      run=0 correct=True  accepted=True  sent_back=0 $0.230981 63.6s
+copier-org__copier-2646 none      run=0 correct=True  accepted=True  sent_back=0 $0.0791024 31.6s
+cs-si__eodag-2176      none      run=0 correct=False accepted=True  sent_back=0 $0.0546758 20.0s
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/claude/emi-eval/tracks/closed_loop.py", line 318, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/claude/emi-eval/tracks/closed_loop.py", line 308, in main
+    row = run_one(task, setup, run, args)
+  File "/home/claude/emi-eval/tracks/closed_loop.py", line 226, in run_one
+    hooks_settings(repo, root, setup, args.emi, env)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/claude/emi-eval/tracks/closed_loop.py", line 151, in hooks_settings
+    git(repo, "commit", "-q", "-m", "Agent harness hooks")
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/claude/emi-eval/emi_evals/workspace.py", line 31, in git
+    raise RuntimeError(f"git {args}: {out.stderr.strip()}")
+RuntimeError: git ('commit', '-q', '-m', 'Agent harness hooks'): 
+exit 1
+databricks__dbt-databricks-1428 none      run=0 correct=False accepted=True  sent_back=0 $0.1451764 37.3s
+graphistry__pygraphistry-1277 none      run=0 correct=False accepted=True  sent_back=0 $0.21269109999999997 213.4s
+hkuds__openharness-217 none      run=0 correct=False accepted=True  sent_back=0 $0.0594466 22.9s
+nesquena__hermes-webui-2056 none      run=0 correct=False accepted=True  sent_back=0 $0.0571628 18.6s
+python-wheel-build__fromager-1124 none      run=0 correct=False accepted=True  sent_back=0 $0.1405265 34.4s
+raullenchai__rapid-mlx-289 none      run=0 correct=True  accepted=True  sent_back=0 $0.1521625 46.2s
+schemathesis__schemathesis-4087 none      run=0 correct=False accepted=False sent_back=0 $0.6569370999999999 253.7s
+tox-dev__tox-3931      none      run=0 correct=True  accepted=True  sent_back=0 $0.058001 16.2s
+youssofal__mtplx-21    none      run=0 correct=True  accepted=True  sent_back=0 $0.07338139999999999 22.9s
+zarr-developers__virtualizarr-979 none      run=0 correct=False accepted=True  sent_back=0 $0.1377512 39.4s
+exit2 0

@@ -148,7 +148,9 @@ def hooks_settings(repo: Path, root: Path, setup: str, emi: str, env: dict) -> N
     path.write_text(json.dumps(data, indent=2))
     git(repo, "switch", "-q", "main")
     git(repo, "add", "-A")
-    git(repo, "commit", "-q", "-m", "Agent harness hooks")
+    # a project may ignore .claude/; the hooks are committed all the same
+    git(repo, "add", "-f", ".claude/settings.json")
+    git(repo, "commit", "-q", "--allow-empty", "-m", "Agent harness hooks")
     git(repo, "switch", "-q", "task")
     git(repo, "reset", "-q", "--hard", "main")
 

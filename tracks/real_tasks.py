@@ -17,7 +17,7 @@ import tempfile
 from pathlib import Path
 
 from emi_evals.workspace import git
-from tracks.rebench import IGNORED, apply_patch, pytest_ids, sh
+from tracks.rebench import IGNORED, apply_patch, pytest_ids, sh, touched_files
 
 NOTE = ("\n\nThe project's virtualenv is .venv; run tests with `.venv/bin/python -m pytest <files>`. "
         "Fix the issue in the project's code. When the task is done, stop.")
@@ -72,6 +72,16 @@ class RealTask:
             dest = Path(tmp) / "tree"
             shutil.copytree(tree, dest, symlinks=True,
                             ignore=shutil.ignore_patterns(".git", "__pycache__", ".venv", ".emi", ".claude"))
+            # as SWE-bench grades: the files the hidden test patch touches are
+            # put back to the baseline first, so an agent's own edits to them
+            # cannot keep the hidden tests from applying
+            for rel in touched_files(self.task["test_patch"]):
+                base = self.src / rel
+                if base.is_file():
+                    (dest / rel).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(base, dest / rel)
+                elif (dest / rel).exists():
+                    (dest / rel).unlink()
             if not apply_patch(dest, self.task["test_patch"]):
                 return {"correct": False, "failed": {"<test patch>": "does not apply"}}
             res = pytest_ids(self.venv / "bin" / "python", dest, self.ids)
@@ -87,3 +97,25 @@ def load(inputs: Path, work: Path) -> list[RealTask]:
         valid[r["instance"]] = r  # the latest validation of each task counts
     return [RealTask(tasks[i], work.resolve(), r["validation"].get("unmatched_ids") or [])
             for i, r in sorted(valid.items()) if r["valid"]]
+
+
+def regrade(out: Path, inputs: Path, work: Path) -> None:
+    """Grade every recorded run again from its saved trees (the final tree and
+    each stop's snapshot), rewriting runs.jsonl; no agent runs again."""
+    tasks = {t.id: t for t in load(inputs, work)}
+    rows = [json.loads(line) for line in (out / "runs.jsonl").read_text().splitlines() if line.strip()]
+    for r in rows:
+        task = tasks[r["task"]]
+        root = work.resolve() / "closed_loop" / f"{r['task']}__{r['setup']}__{r['run']}"
+        snaps = sorted(p for p in (root / "snapshots").iterdir() if p.is_dir() and not p.name.endswith("-oracle"))
+        r["stops_correct"] = [task.grade(s)["correct"] for s in snaps]
+        final = task.grade(root / "repo")
+        r["final_correct"], r["oracle_failed"] = final["correct"], sorted(final["failed"])[:6]
+        r["wrong_done"] = r["accepted"] and not r["final_correct"]
+        r["regraded"] = True
+    (out / "runs.jsonl").write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
+
+
+if __name__ == "__main__":
+    import sys
+    regrade(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))
