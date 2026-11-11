@@ -1,0 +1,150 @@
+
+[notice] A new release of pip is available: 26.2.2 -> 26.3
+[notice] To update, run: /tmp/work/dnq/venv/bin/python -m pip install --upgrade pip
+  truth t02_invoice_rounding   gold                         correct
+  truth t01_slugify            gold                         correct
+  truth t02_invoice_rounding   gold_notest                  correct
+  truth t01_slugify            gold_notest                  correct
+  truth t02_invoice_rounding   gold_redundant               correct
+  truth t01_slugify            gold_appended                correct
+  truth t01_slugify            gold_redundant               correct
+  truth t02_invoice_rounding   bankers_rounding             incorrect
+  t02_invoice_rounding   drafted_no_questions gold                         correct   -> stop (24.8s)
+  truth t01_slugify            forgets_sep                  incorrect
+  truth t02_invoice_rounding   rounds_each_line             incorrect
+  t01_slugify            drafted_no_questions gold                         correct   -> stop (27.59s)
+  truth t01_slugify            hardcoded_example            incorrect
+  truth t02_invoice_rounding   float_result                 incorrect
+  truth t01_slugify            drops_digits                 incorrect
+  t02_invoice_rounding   drafted_no_questions gold_notest                  correct   -> stop (18.9s)
+  truth t02_invoice_rounding   noop                         incorrect
+  truth t01_slugify            drops_accents                incorrect
+  truth t03_business_days      gold                         correct
+  t01_slugify            drafted_no_questions gold_notest                  correct   -> stop (23.69s)
+  truth t01_slugify            breaks_truncate              incorrect
+  truth t03_business_days      gold_notest                  correct
+  truth t01_slugify            noop                         incorrect
+  truth t03_business_days      gold_appended                correct
+  t02_invoice_rounding   drafted_no_questions gold_redundant               correct   -> stop (27.79s)
+  truth t03_business_days      generator_consumed           incorrect
+  truth t03_business_days      subtracts_all_holidays       incorrect
+  t01_slugify            drafted_no_questions gold_appended                correct   -> stop (32.54s)
+  truth t03_business_days      inclusive_end                incorrect
+  t02_invoice_rounding   drafted_no_questions bankers_rounding             incorrect -> repair (33.9s)
+  truth t03_business_days      ignores_holidays             incorrect
+  truth t03_business_days      reversed_positive            incorrect
+  t03_business_days      drafted_no_questions gold                         correct   -> stop (38.57s)
+  t01_slugify            drafted_no_questions gold_redundant               correct   -> stop (34.39s)
+  truth t04_order_cancel       gold                         correct
+  t02_invoice_rounding   drafted_no_questions rounds_each_line             incorrect -> stop (22.24s)
+  truth t04_order_cancel       gold_notest                  correct
+  truth t04_order_cancel       no_refund                    incorrect
+  t03_business_days      drafted_no_questions gold_notest                  correct   -> stop (27.83s)
+  t01_slugify            drafted_no_questions forgets_sep                  incorrect -> repair (28.24s)
+  truth t04_order_cancel       not_idempotent               incorrect
+  t02_invoice_rounding   drafted_no_questions float_result                 incorrect -> repair (28.02s)
+  truth t04_order_cancel       cancels_shipped              incorrect
+  t03_business_days      drafted_no_questions gold_appended                correct   -> stop (24.07s)
+  truth t04_order_cancel       wrong_exception              incorrect
+  t01_slugify            drafted_no_questions hardcoded_example            incorrect -> repair (29.63s)
+  t02_invoice_rounding   drafted_no_questions noop                         incorrect -> repair (23.29s)
+  truth t04_order_cancel       drops_pay_history            incorrect
+  truth t05_kv_quotes          gold                         correct
+  truth t05_kv_quotes          gold_notest                  correct
+  t03_business_days      drafted_no_questions generator_consumed           incorrect -> repair (25.64s)
+  truth t05_kv_quotes          regex_no_escapes             incorrect
+  truth t05_kv_quotes          swallows_unterminated        incorrect
+  t01_slugify            drafted_no_questions drops_digits                 incorrect -> repair (30.82s)
+  t04_order_cancel       drafted_no_questions gold                         correct   -> stop (28.71s)
+  truth t05_kv_quotes          keeps_empty_segments         incorrect
+  t03_business_days      drafted_no_questions subtracts_all_holidays       incorrect -> repair (24.32s)
+  truth t05_kv_quotes          rejects_bare_key             incorrect
+  truth t05_kv_quotes          hardcoded_example            incorrect
+  t04_order_cancel       drafted_no_questions gold_notest                  correct   -> stop (26.35s)
+  t01_slugify            drafted_no_questions drops_accents                incorrect -> repair (35.98s)
+  t03_business_days      drafted_no_questions inclusive_end                incorrect -> repair (38.17s)
+  t05_kv_quotes          drafted_no_questions gold                         correct   -> stop (26.67s)
+  t04_order_cancel       drafted_no_questions no_refund                    incorrect -> repair (25.58s)
+  t01_slugify            drafted_no_questions breaks_truncate              incorrect -> repair (28.67s)
+  t03_business_days      drafted_no_questions ignores_holidays             incorrect -> repair (30.03s)
+  t05_kv_quotes          drafted_no_questions gold_notest                  correct   -> stop (28.9s)
+  t04_order_cancel       drafted_no_questions not_idempotent               incorrect -> repair (24.76s)
+  t01_slugify            drafted_no_questions noop                         incorrect -> repair (25.86s)
+  truth t06_lru_recency        gold                         correct
+  t04_order_cancel       drafted_no_questions cancels_shipped              incorrect -> repair (17.97s)
+  t03_business_days      drafted_no_questions reversed_positive            incorrect -> repair (20.32s)
+  truth t06_lru_recency        gold_redundant               correct
+  t05_kv_quotes          drafted_no_questions regex_no_escapes             incorrect -> repair (22.48s)
+  truth t06_lru_recency        gold_notest                  correct
+  t04_order_cancel       drafted_no_questions wrong_exception              incorrect -> repair (19.96s)
+  truth t06_lru_recency        get_only                     incorrect
+  t05_kv_quotes          drafted_no_questions swallows_unterminated        incorrect -> repair (18.86s)
+  truth t06_lru_recency        miss_corrupts_order          incorrect
+  t06_lru_recency        drafted_no_questions gold                         correct   -> stop (24.91s)
+  t04_order_cancel       drafted_no_questions drops_pay_history            incorrect -> repair (14.98s)
+  truth t07_backoff_cap        gold_updates_old_test        correct
+  truth t06_lru_recency        evicts_newest                incorrect
+  truth t07_backoff_cap        stale_old_test               incorrect
+  truth t07_backoff_cap        cap_only                     incorrect
+  t05_kv_quotes          drafted_no_questions keeps_empty_segments         incorrect -> repair (26.45s)
+  t06_lru_recency        drafted_no_questions gold_redundant               correct   -> stop (21.54s)
+  truth t07_backoff_cap        falsy_cap                    incorrect
+  truth t07_backoff_cap        cap_before_scaling           incorrect
+  truth t06_lru_recency        noop                         incorrect
+  truth t08_pricing_refactor   gold                         correct
+  t05_kv_quotes          drafted_no_questions rejects_bare_key             incorrect -> repair (16.25s)
+  truth t08_pricing_refactor   gold_with_types_and_docs     correct
+  t06_lru_recency        drafted_no_questions gold_notest                  correct   -> stop (21.07s)
+  truth t08_pricing_refactor   loses_bulk_check             incorrect
+  t07_backoff_cap        drafted_no_questions gold_updates_old_test        correct   -> ask_person (19.79s)
+  truth t08_pricing_refactor   rounds_unit_price            incorrect
+  truth t08_pricing_refactor   strict_threshold             incorrect
+  t05_kv_quotes          drafted_no_questions hardcoded_example            incorrect -> repair (26.07s)
+  truth t08_pricing_refactor   tiers_ascending              incorrect
+  truth t09_semver             gold                         correct
+  truth t09_semver             gold_appended                correct
+  t07_backoff_cap        drafted_no_questions stale_old_test               incorrect -> repair (35.07s)
+  t06_lru_recency        drafted_no_questions get_only                     incorrect -> repair (47.97s)
+  truth t09_semver             ints_only                    incorrect
+  t08_pricing_refactor   drafted_no_questions gold                         correct   -> stop (21.3s)
+  truth t09_semver             lexical_prerelease           incorrect
+  truth t09_semver             no_padding                   incorrect
+  truth t09_semver             latest_max_breaks_empty      incorrect
+  t07_backoff_cap        drafted_no_questions cap_only                     incorrect -> repair (28.0s)
+  t08_pricing_refactor   drafted_no_questions gold_with_types_and_docs     correct   -> stop (21.77s)
+  t06_lru_recency        drafted_no_questions miss_corrupts_order          incorrect -> repair (26.28s)
+  t08_pricing_refactor   drafted_no_questions loses_bulk_check             incorrect -> repair (26.88s)
+  t07_backoff_cap        drafted_no_questions falsy_cap                    incorrect -> ask_person (29.88s)
+  t09_semver             drafted_no_questions gold                         correct   -> stop (31.63s)
+  t07_backoff_cap        drafted_no_questions cap_before_scaling           incorrect -> repair (25.94s)
+  t09_semver             drafted_no_questions gold_appended                correct   -> stop (22.17s)
+  t06_lru_recency        drafted_no_questions evicts_newest                incorrect -> repair (53.53s)
+  t08_pricing_refactor   drafted_no_questions rounds_unit_price            incorrect -> repair (32.09s)
+  truth t10_median             gold                         correct
+  truth t10_median             gold_notest                  correct
+  truth t10_median             gold_with_docstring          correct
+  t09_semver             drafted_no_questions ints_only                    incorrect -> repair (24.48s)
+  truth t10_median             sorts_in_place               incorrect
+  truth t10_median             always_two_middle            incorrect
+  t08_pricing_refactor   drafted_no_questions strict_threshold             incorrect -> repair (34.98s)
+  t06_lru_recency        drafted_no_questions noop                         incorrect -> repair (37.85s)
+  truth t10_median             hardcoded_example            incorrect
+  t09_semver             drafted_no_questions lexical_prerelease           incorrect -> repair (18.94s)
+  truth t10_median             floor_division               incorrect
+  truth t10_median             noop                         incorrect
+  t09_semver             drafted_no_questions no_padding                   incorrect -> repair (20.24s)
+  t08_pricing_refactor   drafted_no_questions tiers_ascending              incorrect -> repair (29.84s)
+  t10_median             drafted_no_questions gold                         correct   -> stop (19.71s)
+  t09_semver             drafted_no_questions latest_max_breaks_empty      incorrect -> repair (19.03s)
+  t10_median             drafted_no_questions gold_notest                  correct   -> stop (14.07s)
+  t10_median             drafted_no_questions gold_with_docstring          correct   -> stop (10.17s)
+  t10_median             drafted_no_questions sorts_in_place               incorrect -> repair (11.89s)
+  t10_median             drafted_no_questions always_two_middle            incorrect -> repair (19.13s)
+  t10_median             drafted_no_questions hardcoded_example            incorrect -> repair (12.21s)
+  t10_median             drafted_no_questions floor_division               incorrect -> repair (13.06s)
+  t10_median             drafted_no_questions noop                         incorrect -> repair (10.81s)
+done in 683s -> results-2026-11-11-drafted/raw/drafted_no_questions
+
+real	11m22.685s
+user	21m36.487s
+sys	1m7.744s

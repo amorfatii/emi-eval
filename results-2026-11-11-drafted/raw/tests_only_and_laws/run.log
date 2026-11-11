@@ -1,0 +1,215 @@
+
+[notice] A new release of pip is available: 26.2.2 -> 26.3
+[notice] To update, run: /tmp/work/base/venv/bin/python -m pip install --upgrade pip
+  truth t02_invoice_rounding   gold                         correct
+  truth t01_slugify            gold                         correct
+  truth t02_invoice_rounding   gold_notest                  correct
+  truth t01_slugify            gold_notest                  correct
+  truth t02_invoice_rounding   gold_redundant               correct
+  t01_slugify            tests_only     gold                         correct   -> stop (7.97s)
+  truth t01_slugify            gold_appended                correct
+  truth t02_invoice_rounding   bankers_rounding             incorrect
+  t01_slugify            tests_only     gold_notest                  correct   -> stop (3.8s)
+  truth t02_invoice_rounding   rounds_each_line             incorrect
+  truth t01_slugify            gold_redundant               correct
+  truth t02_invoice_rounding   float_result                 incorrect
+  t01_slugify            laws           gold                         correct   -> stop (15.95s)
+  truth t01_slugify            forgets_sep                  incorrect
+  t01_slugify            tests_only     gold_appended                correct   -> stop (7.82s)
+  truth t02_invoice_rounding   noop                         incorrect
+  truth t01_slugify            hardcoded_example            incorrect
+  t01_slugify            tests_only     gold_redundant               correct   -> stop (4.81s)
+  truth t01_slugify            drops_digits                 incorrect
+  truth t01_slugify            drops_accents                incorrect
+  t02_invoice_rounding   tests_only     gold                         correct   -> stop (6.87s)
+  t01_slugify            laws           gold_notest                  correct   -> stop (15.18s)
+  t01_slugify            tests_only     forgets_sep                  incorrect -> stop (7.02s)
+  truth t01_slugify            breaks_truncate              incorrect
+  t02_invoice_rounding   tests_only     gold_notest                  correct   -> stop (3.69s)
+  truth t01_slugify            noop                         incorrect
+  t01_slugify            tests_only     hardcoded_example            incorrect -> stop (8.85s)
+  t02_invoice_rounding   tests_only     gold_redundant               correct   -> stop (6.69s)
+  t01_slugify            laws           gold_appended                correct   -> stop (18.62s)
+  t02_invoice_rounding   tests_only     bankers_rounding             incorrect -> stop (9.3s)
+  t01_slugify            tests_only     drops_digits                 incorrect -> stop (9.57s)
+  t02_invoice_rounding   laws           gold                         correct   -> stop (16.27s)
+  t02_invoice_rounding   tests_only     rounds_each_line             incorrect -> stop (10.69s)
+  t01_slugify            tests_only     drops_accents                incorrect -> repair (18.09s)
+  t02_invoice_rounding   tests_only     float_result                 incorrect -> stop (9.88s)
+  t01_slugify            laws           gold_redundant               correct   -> stop (21.47s)
+  t02_invoice_rounding   laws           gold_notest                  correct   -> stop (12.82s)
+  t02_invoice_rounding   tests_only     noop                         incorrect -> stop (7.51s)
+  t01_slugify            tests_only     breaks_truncate              incorrect -> stop (11.65s)
+  truth t03_business_days      gold                         correct
+  t01_slugify            tests_only     noop                         incorrect -> stop (6.59s)
+  truth t03_business_days      gold_notest                  correct
+  t02_invoice_rounding   laws           gold_redundant               correct   -> stop (15.11s)
+  truth t03_business_days      gold_appended                correct
+  t01_slugify            laws           forgets_sep                  incorrect -> stop (21.3s)
+  truth t03_business_days      generator_consumed           incorrect
+  truth t03_business_days      subtracts_all_holidays       incorrect
+  t02_invoice_rounding   laws           bankers_rounding             incorrect -> repair (15.72s)
+  t03_business_days      tests_only     gold                         correct   -> stop (12.88s)
+  truth t03_business_days      inclusive_end                incorrect
+  t03_business_days      tests_only     gold_notest                  correct   -> stop (6.64s)
+  truth t03_business_days      ignores_holidays             incorrect
+  truth t03_business_days      reversed_positive            incorrect
+  t01_slugify            laws           hardcoded_example            incorrect -> repair (24.37s)
+  t02_invoice_rounding   laws           rounds_each_line             incorrect -> repair (16.78s)
+  t03_business_days      tests_only     gold_appended                correct   -> stop (9.74s)
+  t03_business_days      tests_only     generator_consumed           incorrect -> stop (13.35s)
+  t02_invoice_rounding   laws           float_result                 incorrect -> repair (17.94s)
+  t01_slugify            laws           drops_digits                 incorrect -> stop (21.63s)
+  t03_business_days      laws           gold                         correct   -> stop (18.01s)
+  t03_business_days      tests_only     subtracts_all_holidays       incorrect -> stop (11.01s)
+  t02_invoice_rounding   laws           noop                         incorrect -> repair (11.49s)
+  t03_business_days      laws           gold_notest                  correct   -> stop (14.08s)
+  truth t04_order_cancel       gold                         correct
+  truth t04_order_cancel       gold_notest                  correct
+  t03_business_days      tests_only     inclusive_end                incorrect -> repair (17.27s)
+  truth t04_order_cancel       no_refund                    incorrect
+  t03_business_days      tests_only     ignores_holidays             incorrect -> stop (5.48s)
+  t03_business_days      laws           gold_appended                correct   -> stop (14.45s)
+  t01_slugify            laws           drops_accents                incorrect -> repair (29.9s)
+  truth t04_order_cancel       not_idempotent               incorrect
+  truth t04_order_cancel       cancels_shipped              incorrect
+  t03_business_days      tests_only     reversed_positive            incorrect -> stop (14.08s)
+  truth t04_order_cancel       wrong_exception              incorrect
+  t03_business_days      laws           generator_consumed           incorrect -> stop (15.3s)
+  truth t04_order_cancel       drops_pay_history            incorrect
+  t01_slugify            laws           breaks_truncate              incorrect -> stop (20.66s)
+  t04_order_cancel       tests_only     gold                         correct   -> stop (11.84s)
+  t03_business_days      laws           subtracts_all_holidays       incorrect -> stop (14.44s)
+  t04_order_cancel       tests_only     gold_notest                  correct   -> stop (4.3s)
+  t04_order_cancel       laws           gold                         correct   -> stop (13.06s)
+  t01_slugify            laws           noop                         incorrect -> repair (15.81s)
+  truth t05_kv_quotes          gold                         correct
+  t04_order_cancel       tests_only     no_refund                    incorrect -> stop (8.5s)
+  t03_business_days      laws           inclusive_end                incorrect -> repair (14.7s)
+  truth t05_kv_quotes          gold_notest                  correct
+  t04_order_cancel       laws           gold_notest                  correct   -> stop (11.05s)
+  truth t05_kv_quotes          regex_no_escapes             incorrect
+  t04_order_cancel       tests_only     not_idempotent               incorrect -> stop (7.91s)
+  truth t05_kv_quotes          swallows_unterminated        incorrect
+  t03_business_days      laws           ignores_holidays             incorrect -> repair (10.46s)
+  truth t05_kv_quotes          keeps_empty_segments         incorrect
+  t04_order_cancel       laws           no_refund                    incorrect -> repair (10.75s)
+  t04_order_cancel       tests_only     cancels_shipped              incorrect -> stop (8.76s)
+  truth t05_kv_quotes          rejects_bare_key             incorrect
+  t03_business_days      laws           reversed_positive            incorrect -> repair (11.19s)
+  truth t05_kv_quotes          hardcoded_example            incorrect
+  t04_order_cancel       tests_only     wrong_exception              incorrect -> stop (9.3s)
+  t04_order_cancel       laws           not_idempotent               incorrect -> repair (10.85s)
+  t04_order_cancel       tests_only     drops_pay_history            incorrect -> stop (8.57s)
+  t05_kv_quotes          tests_only     gold                         correct   -> stop (9.03s)
+  truth t06_lru_recency        gold                         correct
+  t05_kv_quotes          tests_only     gold_notest                  correct   -> stop (3.69s)
+  t04_order_cancel       laws           cancels_shipped              incorrect -> stop (13.83s)
+  truth t06_lru_recency        gold_redundant               correct
+  t05_kv_quotes          laws           gold                         correct   -> stop (16.09s)
+  truth t06_lru_recency        gold_notest                  correct
+  t05_kv_quotes          tests_only     regex_no_escapes             incorrect -> stop (6.89s)
+  truth t06_lru_recency        get_only                     incorrect
+  truth t06_lru_recency        miss_corrupts_order          incorrect
+  t04_order_cancel       laws           wrong_exception              incorrect -> stop (13.18s)
+  t05_kv_quotes          tests_only     swallows_unterminated        incorrect -> stop (7.29s)
+  truth t06_lru_recency        evicts_newest                incorrect
+  t05_kv_quotes          laws           gold_notest                  correct   -> stop (16.65s)
+  truth t06_lru_recency        noop                         incorrect
+  t04_order_cancel       laws           drops_pay_history            incorrect -> stop (10.38s)
+  t05_kv_quotes          tests_only     keeps_empty_segments         incorrect -> repair (13.23s)
+  t06_lru_recency        tests_only     gold                         correct   -> stop (11.54s)
+  t05_kv_quotes          tests_only     rejects_bare_key             incorrect -> stop (13.11s)
+  t05_kv_quotes          laws           regex_no_escapes             incorrect -> repair (24.51s)
+  t06_lru_recency        tests_only     gold_redundant               correct   -> stop (9.6s)
+  t06_lru_recency        laws           gold                         correct   -> stop (21.0s)
+  t06_lru_recency        tests_only     gold_notest                  correct   -> stop (6.94s)
+  t05_kv_quotes          tests_only     hardcoded_example            incorrect -> stop (12.1s)
+  truth t07_backoff_cap        gold_updates_old_test        correct
+  truth t07_backoff_cap        stale_old_test               incorrect
+  t05_kv_quotes          laws           swallows_unterminated        incorrect -> stop (23.99s)
+  truth t07_backoff_cap        cap_only                     incorrect
+  t06_lru_recency        tests_only     get_only                     incorrect -> stop (19.12s)
+  truth t07_backoff_cap        falsy_cap                    incorrect
+  t06_lru_recency        laws           gold_redundant               correct   -> stop (31.58s)
+  truth t07_backoff_cap        cap_before_scaling           incorrect
+  t06_lru_recency        tests_only     miss_corrupts_order          incorrect -> stop (14.37s)
+  t07_backoff_cap        tests_only     gold_updates_old_test        correct   -> ask_person (23.98s)
+  t05_kv_quotes          laws           keeps_empty_segments         incorrect -> repair (44.25s)
+  t06_lru_recency        laws           gold_notest                  correct   -> stop (37.1s)
+  t06_lru_recency        tests_only     evicts_newest                incorrect -> repair (31.21s)
+  t06_lru_recency        tests_only     noop                         incorrect -> stop (21.31s)
+  t07_backoff_cap        tests_only     stale_old_test               incorrect -> repair (31.53s)
+  t06_lru_recency        laws           get_only                     incorrect -> repair (31.74s)
+  t05_kv_quotes          laws           rejects_bare_key             incorrect -> stop (41.39s)
+  t07_backoff_cap        laws           gold_updates_old_test        correct   -> ask_person (14.81s)
+  t07_backoff_cap        tests_only     cap_only                     incorrect -> stop (16.96s)
+  t06_lru_recency        laws           miss_corrupts_order          incorrect -> repair (31.95s)
+  t07_backoff_cap        laws           stale_old_test               incorrect -> repair (22.5s)
+  t07_backoff_cap        tests_only     falsy_cap                    incorrect -> ask_person (24.38s)
+  t05_kv_quotes          laws           hardcoded_example            incorrect -> repair (33.5s)
+  t07_backoff_cap        laws           cap_only                     incorrect -> stop (8.82s)
+  truth t08_pricing_refactor   gold                         correct
+  truth t08_pricing_refactor   gold_with_types_and_docs     correct
+  truth t08_pricing_refactor   loses_bulk_check             incorrect
+  truth t08_pricing_refactor   rounds_unit_price            incorrect
+  truth t08_pricing_refactor   strict_threshold             incorrect
+  truth t08_pricing_refactor   tiers_ascending              incorrect
+  t07_backoff_cap        tests_only     cap_before_scaling           incorrect -> ask_person (21.17s)
+  t07_backoff_cap        laws           falsy_cap                    incorrect -> repair (16.12s)
+  truth t09_semver             gold                         correct
+  t08_pricing_refactor   tests_only     gold                         correct   -> stop (4.79s)
+  truth t09_semver             gold_appended                correct
+  truth t09_semver             ints_only                    incorrect
+  t08_pricing_refactor   tests_only     gold_with_types_and_docs     correct   -> stop (5.4s)
+  t07_backoff_cap        laws           cap_before_scaling           incorrect -> repair (11.69s)
+  t06_lru_recency        laws           evicts_newest                incorrect -> repair (38.23s)
+  truth t09_semver             lexical_prerelease           incorrect
+  t08_pricing_refactor   tests_only     loses_bulk_check             incorrect -> stop (4.09s)
+  truth t09_semver             no_padding                   incorrect
+  truth t09_semver             latest_max_breaks_empty      incorrect
+  t08_pricing_refactor   tests_only     rounds_unit_price            incorrect -> stop (6.09s)
+  t09_semver             tests_only     gold                         correct   -> stop (9.15s)
+  t08_pricing_refactor   tests_only     strict_threshold             incorrect -> repair (10.2s)
+  t09_semver             tests_only     gold_appended                correct   -> stop (7.76s)
+  t06_lru_recency        laws           noop                         incorrect -> repair (21.12s)
+  t09_semver             laws           gold                         correct   -> stop (10.88s)
+  truth t10_median             gold                         correct
+  t08_pricing_refactor   tests_only     tiers_ascending              incorrect -> stop (5.65s)
+  truth t10_median             gold_notest                  correct
+  t09_semver             tests_only     ints_only                    incorrect -> stop (7.09s)
+  truth t10_median             gold_with_docstring          correct
+  truth t10_median             sorts_in_place               incorrect
+  t09_semver             laws           gold_appended                correct   -> stop (11.37s)
+  truth t10_median             always_two_middle            incorrect
+  truth t10_median             hardcoded_example            incorrect
+  t09_semver             tests_only     lexical_prerelease           incorrect -> stop (10.96s)
+  t10_median             tests_only     gold                         correct   -> stop (9.58s)
+  truth t10_median             floor_division               incorrect
+  truth t10_median             noop                         incorrect
+  t10_median             tests_only     gold_notest                  correct   -> stop (6.03s)
+  t09_semver             laws           ints_only                    incorrect -> repair (11.93s)
+  t09_semver             tests_only     no_padding                   incorrect -> stop (8.19s)
+  t10_median             tests_only     gold_with_docstring          correct   -> stop (8.05s)
+  t09_semver             laws           lexical_prerelease           incorrect -> repair (9.81s)
+  t09_semver             tests_only     latest_max_breaks_empty      incorrect -> stop (10.43s)
+  t10_median             laws           gold                         correct   -> stop (12.67s)
+  t10_median             tests_only     sorts_in_place               incorrect -> stop (9.45s)
+  t09_semver             laws           no_padding                   incorrect -> stop (9.65s)
+  t10_median             laws           gold_notest                  correct   -> stop (10.78s)
+  t09_semver             laws           latest_max_breaks_empty      incorrect -> stop (9.45s)
+  t10_median             tests_only     always_two_middle            incorrect -> repair (11.63s)
+  t10_median             tests_only     hardcoded_example            incorrect -> stop (6.09s)
+  t10_median             laws           gold_with_docstring          correct   -> stop (9.11s)
+  t10_median             tests_only     floor_division               incorrect -> stop (6.14s)
+  t10_median             laws           sorts_in_place               incorrect -> stop (7.45s)
+  t10_median             tests_only     noop                         incorrect -> stop (2.95s)
+  t10_median             laws           always_two_middle            incorrect -> repair (8.98s)
+  t10_median             laws           hardcoded_example            incorrect -> repair (5.2s)
+  t10_median             laws           floor_division               incorrect -> repair (6.4s)
+  t10_median             laws           noop                         incorrect -> repair (5.61s)
+done in 598s -> results-2026-11-11-drafted/raw/tests_only_and_laws
+
+real	9m58.010s
+user	23m12.182s
+sys	1m29.860s
