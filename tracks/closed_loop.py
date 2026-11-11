@@ -54,6 +54,10 @@ SETUPS = ("none", "script", "emi", "emi_rules")
 ROUNDS = 3
 RULES_FILE = "test_drafted_rules.py"
 TOOLS = "Bash,Edit,Write,Read,Glob,Grep"
+# what the agent may do without asking: edit files in its task folder, run the
+# project's tests, look at git. Any other shell command is refused.
+ALLOWED = ("Edit,Write,Read,Glob,Grep,Bash(.venv/bin/python -m pytest:*),"
+           "Bash(git status:*),Bash(git diff:*)")
 NOTE = ("\n\nThe project's virtualenv is .venv; run its tests with `.venv/bin/python -m pytest`. "
         "When the task is done, stop.")
 
@@ -200,7 +204,7 @@ def run_one(task, setup: str, run: int, args) -> dict:
     hooks_settings(ws.repo, root, setup, args.emi, env)
     cmd = ["claude", "-p", task.prompt + NOTE, "--output-format", "stream-json", "--verbose",
            "--model", args.model, "--max-turns", str(args.max_turns), "--max-budget-usd", str(args.budget),
-           "--permission-mode", "acceptEdits", "--tools", TOOLS, "--allowedTools", TOOLS,
+           "--permission-mode", "dontAsk", "--tools", TOOLS, "--allowedTools", ALLOWED,
            "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
            "--disable-slash-commands", "--no-chrome", "--no-session-persistence"]
     t0 = time.monotonic()
