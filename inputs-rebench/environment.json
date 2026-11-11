@@ -1,0 +1,7 @@
+{
+ "about": "One repair attempt per rejected environment, limited to the environment: the interpreter a project of that age runs on. Recorded here so the run is reproducible.",
+ "python": {
+  "andialbrecht__sqlparse-231": {"version": "3.9", "why": "2016 code; its grouping tests fail under Python 3.13 with the developers' fix applied"},
+  "serge-sans-paille__gast-50": {"version": "3.9", "why": "2020 code; its AST compatibility tests fail under Python 3.13 with the developers' fix applied"}
+ }
+}
