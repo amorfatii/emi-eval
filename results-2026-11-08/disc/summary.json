@@ -1,0 +1,1308 @@
+{
+ "adversarial": null,
+ "determinism": null,
+ "discrimination": {
+  "conditions": {
+   "laws": {
+    "accept": [
+     19,
+     23
+    ],
+    "catch": [
+     28,
+     42
+    ],
+    "catch_by_action": {
+     "repair": 28
+    },
+    "crashes": 0,
+    "exit_mismatch": 0,
+    "feedback_hit": [
+     9,
+     9
+    ],
+    "friction_by_action": {
+     "ask_person": 1,
+     "repair": 3
+    },
+    "n": 65,
+    "n_correct": 23,
+    "n_incorrect": 42,
+    "seconds_median": 11.0,
+    "seconds_p90": 18.8,
+    "stop_precision": [
+     19,
+     33
+    ]
+   },
+   "laws_adequacy": {
+    "accept": [
+     12,
+     23
+    ],
+    "catch": [
+     35,
+     42
+    ],
+    "catch_by_action": {
+     "repair": 35
+    },
+    "crashes": 0,
+    "exit_mismatch": 0,
+    "feedback_hit": [
+     9,
+     9
+    ],
+    "friction_by_action": {
+     "ask_person": 1,
+     "repair": 10
+    },
+    "n": 65,
+    "n_correct": 23,
+    "n_incorrect": 42,
+    "seconds_median": 15.4,
+    "seconds_p90": 30.8,
+    "stop_precision": [
+     12,
+     19
+    ]
+   },
+   "preserve": {
+    "accept": [
+     2,
+     2
+    ],
+    "catch": [
+     4,
+     4
+    ],
+    "catch_by_action": {
+     "repair": 4
+    },
+    "crashes": 0,
+    "exit_mismatch": 0,
+    "feedback_hit": [
+     4,
+     4
+    ],
+    "friction_by_action": {},
+    "n": 6,
+    "n_correct": 2,
+    "n_incorrect": 4,
+    "seconds_median": 4.9,
+    "seconds_p90": 5.2,
+    "stop_precision": [
+     2,
+     2
+    ]
+   },
+   "strict": {
+    "accept": [
+     10,
+     25
+    ],
+    "catch": [
+     19,
+     46
+    ],
+    "catch_by_action": {
+     "ask_person": 2,
+     "repair": 17
+    },
+    "crashes": 0,
+    "exit_mismatch": 0,
+    "feedback_hit": [
+     10,
+     10
+    ],
+    "friction_by_action": {
+     "ask_person": 1,
+     "repair": 14
+    },
+    "n": 71,
+    "n_correct": 25,
+    "n_incorrect": 46,
+    "seconds_median": 6.1,
+    "seconds_p90": 9.3,
+    "stop_precision": [
+     10,
+     37
+    ]
+   },
+   "tests_only": {
+    "accept": [
+     21,
+     25
+    ],
+    "catch": [
+     9,
+     46
+    ],
+    "catch_by_action": {
+     "ask_person": 2,
+     "repair": 7
+    },
+    "crashes": 0,
+    "exit_mismatch": 0,
+    "feedback_hit": [
+     7,
+     7
+    ],
+    "friction_by_action": {
+     "ask_person": 1,
+     "repair": 3
+    },
+    "n": 71,
+    "n_correct": 25,
+    "n_incorrect": 46,
+    "seconds_median": 6.0,
+    "seconds_p90": 9.2,
+    "stop_precision": [
+     21,
+     58
+    ]
+   }
+  },
+  "every_input_on_failing_law": [
+   "t01_slugify/hardcoded_example/laws: test_a_slug_is_clean",
+   "t01_slugify/noop/laws: test_a_slug_is_clean",
+   "t01_slugify/hardcoded_example/laws_adequacy: test_a_slug_is_clean",
+   "t01_slugify/noop/laws_adequacy: test_a_slug_is_clean",
+   "t02_invoice_rounding/bankers_rounding/laws: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/rounds_each_line/laws: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/float_result/laws: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/noop/laws: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/bankers_rounding/laws_adequacy: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/rounds_each_line/laws_adequacy: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/float_result/laws_adequacy: test_total_is_the_exact_sum_rounded_half_up",
+   "t02_invoice_rounding/noop/laws_adequacy: test_total_is_the_exact_sum_rounded_half_up",
+   "t03_business_days/inclusive_end/laws: test_ranges_add_up",
+   "t03_business_days/inclusive_end/laws: test_reversing_the_range_negates",
+   "t03_business_days/reversed_positive/laws: test_ranges_add_up",
+   "t03_business_days/reversed_positive/laws: test_reversing_the_range_negates",
+   "t03_business_days/inclusive_end/laws_adequacy: test_ranges_add_up",
+   "t03_business_days/inclusive_end/laws_adequacy: test_reversing_the_range_negates",
+   "t03_business_days/reversed_positive/laws_adequacy: test_ranges_add_up",
+   "t03_business_days/reversed_positive/laws_adequacy: test_reversing_the_range_negates",
+   "t04_order_cancel/no_refund/laws: runTest",
+   "t04_order_cancel/not_idempotent/laws: runTest",
+   "t04_order_cancel/no_refund/laws_adequacy: runTest",
+   "t04_order_cancel/not_idempotent/laws_adequacy: runTest",
+   "t05_kv_quotes/regex_no_escapes/laws: test_dump_then_parse_gives_back_the_dict",
+   "t05_kv_quotes/keeps_empty_segments/laws: test_dump_then_parse_gives_back_the_dict",
+   "t05_kv_quotes/hardcoded_example/laws: test_dump_then_parse_gives_back_the_dict",
+   "t05_kv_quotes/regex_no_escapes/laws_adequacy: test_dump_then_parse_gives_back_the_dict",
+   "t05_kv_quotes/keeps_empty_segments/laws_adequacy: test_dump_then_parse_gives_back_the_dict",
+   "t05_kv_quotes/hardcoded_example/laws_adequacy: test_dump_then_parse_gives_back_the_dict",
+   "t06_lru_recency/get_only/laws: runTest",
+   "t06_lru_recency/miss_corrupts_order/laws: runTest",
+   "t06_lru_recency/evicts_newest/laws: runTest",
+   "t06_lru_recency/noop/laws: runTest",
+   "t06_lru_recency/get_only/laws_adequacy: runTest",
+   "t06_lru_recency/miss_corrupts_order/laws_adequacy: runTest",
+   "t06_lru_recency/evicts_newest/laws_adequacy: runTest",
+   "t06_lru_recency/noop/laws_adequacy: runTest",
+   "t07_backoff_cap/falsy_cap/laws: test_never_above_the_cap_and_never_shrinking",
+   "t07_backoff_cap/cap_before_scaling/laws: test_never_above_the_cap_and_never_shrinking",
+   "t07_backoff_cap/falsy_cap/laws_adequacy: test_never_above_the_cap_and_never_shrinking",
+   "t07_backoff_cap/cap_before_scaling/laws_adequacy: test_never_above_the_cap_and_never_shrinking",
+   "t10_median/always_two_middle/laws: test_agrees_with_the_standard_library",
+   "t10_median/hardcoded_example/laws: test_agrees_with_the_standard_library",
+   "t10_median/floor_division/laws: test_agrees_with_the_standard_library",
+   "t10_median/always_two_middle/laws_adequacy: test_agrees_with_the_standard_library",
+   "t10_median/noop/laws: test_agrees_with_the_standard_library",
+   "t10_median/hardcoded_example/laws_adequacy: test_agrees_with_the_standard_library",
+   "t10_median/floor_division/laws_adequacy: test_agrees_with_the_standard_library",
+   "t10_median/noop/laws_adequacy: test_agrees_with_the_standard_library"
+  ],
+  "friction": [
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "tests_only",
+    "mode": "gold_redundant",
+    "reason": "tests/test_slug_new.py::test_lower passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t01_slugify"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs textutil.py:slugify (line 5); add a test that fails without your change.",
+    "task": "t01_slugify"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "strict",
+    "mode": "gold_redundant",
+    "reason": "tests/test_slug_new.py::test_lower passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t01_slugify"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws",
+    "mode": "gold_redundant",
+    "reason": "tests/test_slug_new.py::test_lower passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t01_slugify"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws_adequacy",
+    "mode": "gold_redundant",
+    "reason": "tests/test_slug_new.py::test_lower passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t01_slugify"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "tests_only",
+    "mode": "gold_redundant",
+    "reason": "tests/test_billing_more.py::test_two_lines passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs billing.py:_dec (line 6); add a test that fails without your change.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "strict",
+    "mode": "gold_redundant",
+    "reason": "tests/test_billing_more.py::test_two_lines passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws",
+    "mode": "gold_redundant",
+    "reason": "tests/test_billing_more.py::test_two_lines passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "laws_adequacy",
+    "mode": "gold_notest",
+    "reason": "billing.py:17 in invoice_total: changing `*` to `/` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws_adequacy",
+    "mode": "gold_redundant",
+    "reason": "tests/test_billing_more.py::test_two_lines passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t02_invoice_rounding"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs calendar_utils.py:business_days (line 4); add a test that fails without your change.",
+    "task": "t03_business_days"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs orders.py:cancel (line 32); add a test that fails without your change.",
+    "task": "t04_order_cancel"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold",
+    "condition": "laws_adequacy",
+    "mode": "gold",
+    "reason": "tests/test_cancel.py:10 in test_cancel_paid_refunds: changing `and` to `or` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t04_order_cancel"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs kvparse.py:_segments (line 1); add a test that fails without your change.",
+    "task": "t05_kv_quotes"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold",
+    "condition": "laws_adequacy",
+    "mode": "gold",
+    "reason": "kvparse.py:31 in _strip: changing `==` to `!=` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t05_kv_quotes"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "laws_adequacy",
+    "mode": "gold_notest",
+    "reason": "kvparse.py:31 in _strip: changing `==` to `!=` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t05_kv_quotes"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "tests_only",
+    "mode": "gold_redundant",
+    "reason": "tests/test_lru_more.py::test_len passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "strict",
+    "mode": "gold_redundant",
+    "reason": "tests/test_lru_more.py::test_len passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs lru.py:get (line 9); add a test that fails without your change.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws",
+    "mode": "gold_redundant",
+    "reason": "tests/test_lru_more.py::test_len passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold",
+    "condition": "laws_adequacy",
+    "mode": "gold",
+    "reason": "tests/test_lru_recency.py:9 in test_get_refreshes: changing `and` to `or` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_redundant",
+    "condition": "laws_adequacy",
+    "mode": "gold_redundant",
+    "reason": "tests/test_lru_more.py::test_len passes without your change, so it does not show the change works; make it fail on the old code, or remove it.",
+    "task": "t06_lru_recency"
+   },
+   {
+    "action": "ask_person",
+    "candidate": "gold_updates_old_test",
+    "condition": "tests_only",
+    "mode": "gold_edits_test",
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "task": "t07_backoff_cap"
+   },
+   {
+    "action": "ask_person",
+    "candidate": "gold_updates_old_test",
+    "condition": "strict",
+    "mode": "gold_edits_test",
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "task": "t07_backoff_cap"
+   },
+   {
+    "action": "ask_person",
+    "candidate": "gold_updates_old_test",
+    "condition": "laws",
+    "mode": "gold_edits_test",
+    "reason": "1 law(s) hold on sampled inputs, not on every input: no counterexample among them is evidence, not a proof: .emi/laws/test_retry_laws.py::test_never_above_the_cap_and_never_shrinking (100 sampled inputs).",
+    "task": "t07_backoff_cap"
+   },
+   {
+    "action": "ask_person",
+    "candidate": "gold_updates_old_test",
+    "condition": "laws_adequacy",
+    "mode": "gold_edits_test",
+    "reason": "1 law(s) hold on sampled inputs, not on every input: no counterexample among them is evidence, not a proof: .emi/laws/test_retry_laws.py::test_never_above_the_cap_and_never_shrinking (100 sampled inputs).",
+    "task": "t07_backoff_cap"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold",
+    "condition": "strict",
+    "mode": "gold_refactor",
+    "reason": "No proving test runs pricing.py:_tier_discount (line 1); add a test that fails without your change.",
+    "task": "t08_pricing_refactor"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_with_types_and_docs",
+    "condition": "strict",
+    "mode": "gold_refactor",
+    "reason": "No proving test runs pricing.py:_tier_discount (line 3); add a test that fails without your change.",
+    "task": "t08_pricing_refactor"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_appended",
+    "condition": "strict",
+    "mode": "gold_appended",
+    "reason": "No proving test runs versions.py:_ident (line 1); add a test that fails without your change.",
+    "task": "t09_semver"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold",
+    "condition": "laws_adequacy",
+    "mode": "gold",
+    "reason": "versions.py:8 in parse_version: changing `-` to `+` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t09_semver"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_appended",
+    "condition": "laws_adequacy",
+    "mode": "gold_appended",
+    "reason": "versions.py:8 in parse_version: changing `-` to `+` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "task": "t09_semver"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_notest",
+    "condition": "strict",
+    "mode": "gold_notest",
+    "reason": "No proving test runs stats.py:median (line 7); add a test that fails without your change.",
+    "task": "t10_median"
+   },
+   {
+    "action": "repair",
+    "candidate": "gold_with_docstring",
+    "condition": "strict",
+    "mode": "gold_comment",
+    "reason": "No proving test runs stats.py:mean (line 1); add a test that fails without your change.",
+    "task": "t10_median"
+   }
+  ],
+  "gate_by_mode": {
+   "behaviour_drift": {
+    "naive_ci": [
+     3,
+     4
+    ],
+    "restore": [
+     3,
+     4
+    ]
+   },
+   "boundary": {
+    "naive_ci": [
+     4,
+     4
+    ],
+    "restore": [
+     3,
+     4
+    ]
+   },
+   "dead_code": {
+    "naive_ci": [
+     1,
+     1
+    ],
+    "restore": [
+     1,
+     1
+    ]
+   },
+   "gold": {
+    "naive_ci": [
+     8,
+     8
+    ],
+    "restore": [
+     8,
+     8
+    ]
+   },
+   "gold_appended": {
+    "naive_ci": [
+     3,
+     3
+    ],
+    "restore": [
+     3,
+     3
+    ]
+   },
+   "gold_comment": {
+    "naive_ci": [
+     1,
+     1
+    ],
+    "restore": [
+     1,
+     1
+    ]
+   },
+   "gold_edits_test": {
+    "naive_ci": [
+     1,
+     1
+    ],
+    "restore": [
+     0,
+     1
+    ]
+   },
+   "gold_notest": {
+    "naive_ci": [
+     7,
+     7
+    ],
+    "restore": [
+     7,
+     7
+    ]
+   },
+   "gold_redundant": {
+    "naive_ci": [
+     3,
+     3
+    ],
+    "restore": [
+     3,
+     3
+    ]
+   },
+   "gold_refactor": {
+    "naive_ci": [
+     2,
+     2
+    ],
+    "restore": [
+     2,
+     2
+    ]
+   },
+   "hardcode": {
+    "naive_ci": [
+     3,
+     3
+    ],
+    "restore": [
+     3,
+     3
+    ]
+   },
+   "noop": {
+    "naive_ci": [
+     4,
+     4
+    ],
+    "restore": [
+     4,
+     4
+    ]
+   },
+   "partial": {
+    "naive_ci": [
+     12,
+     12
+    ],
+    "restore": [
+     11,
+     12
+    ]
+   },
+   "regress_covered": {
+    "naive_ci": [
+     0,
+     5
+    ],
+    "restore": [
+     0,
+     5
+    ]
+   },
+   "regress_silent": {
+    "naive_ci": [
+     6,
+     6
+    ],
+    "restore": [
+     6,
+     6
+    ]
+   },
+   "stale_test": {
+    "naive_ci": [
+     0,
+     1
+    ],
+    "restore": [
+     0,
+     1
+    ]
+   },
+   "swallow": {
+    "naive_ci": [
+     1,
+     1
+    ],
+    "restore": [
+     1,
+     1
+    ]
+   },
+   "wrong_test": {
+    "naive_ci": [
+     5,
+     5
+    ],
+    "restore": [
+     5,
+     5
+    ]
+   }
+  },
+  "gates": {
+   "laws": {
+    "naive_ci": {
+     "accept": [
+      23,
+      23
+     ],
+     "catch": [
+      6,
+      42
+     ]
+    },
+    "restore": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      8,
+      42
+     ]
+    },
+    "restore_laws": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      30,
+      42
+     ]
+    }
+   },
+   "laws_adequacy": {
+    "naive_ci": {
+     "accept": [
+      23,
+      23
+     ],
+     "catch": [
+      6,
+      42
+     ]
+    },
+    "restore": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      8,
+      42
+     ]
+    },
+    "restore_laws": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      30,
+      42
+     ]
+    }
+   },
+   "preserve": {
+    "naive_ci": {
+     "accept": [
+      2,
+      2
+     ],
+     "catch": [
+      1,
+      4
+     ]
+    },
+    "restore": {
+     "accept": [
+      2,
+      2
+     ],
+     "catch": [
+      1,
+      4
+     ]
+    },
+    "restore_laws": null
+   },
+   "strict": {
+    "naive_ci": {
+     "accept": [
+      25,
+      25
+     ],
+     "catch": [
+      7,
+      46
+     ]
+    },
+    "restore": {
+     "accept": [
+      24,
+      25
+     ],
+     "catch": [
+      9,
+      46
+     ]
+    },
+    "restore_laws": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      30,
+      42
+     ]
+    }
+   },
+   "tests_only": {
+    "naive_ci": {
+     "accept": [
+      25,
+      25
+     ],
+     "catch": [
+      7,
+      46
+     ]
+    },
+    "restore": {
+     "accept": [
+      24,
+      25
+     ],
+     "catch": [
+      9,
+      46
+     ]
+    },
+    "restore_laws": {
+     "accept": [
+      22,
+      23
+     ],
+     "catch": [
+      30,
+      42
+     ]
+    }
+   }
+  },
+  "invalid_labels": [],
+  "modes": {
+   "behaviour_drift": {
+    "preserve": [
+     0,
+     4
+    ],
+    "strict": [
+     0,
+     4
+    ],
+    "tests_only": [
+     3,
+     4
+    ]
+   },
+   "boundary": {
+    "laws": [
+     1,
+     4
+    ],
+    "laws_adequacy": [
+     1,
+     4
+    ],
+    "strict": [
+     3,
+     4
+    ],
+    "tests_only": [
+     3,
+     4
+    ]
+   },
+   "dead_code": {
+    "laws": [
+     0,
+     1
+    ],
+    "laws_adequacy": [
+     0,
+     1
+    ],
+    "strict": [
+     0,
+     1
+    ],
+    "tests_only": [
+     1,
+     1
+    ]
+   },
+   "gold": {
+    "laws": [
+     8,
+     8
+    ],
+    "laws_adequacy": [
+     4,
+     8
+    ],
+    "strict": [
+     8,
+     8
+    ],
+    "tests_only": [
+     8,
+     8
+    ]
+   },
+   "gold_appended": {
+    "laws": [
+     3,
+     3
+    ],
+    "laws_adequacy": [
+     2,
+     3
+    ],
+    "strict": [
+     2,
+     3
+    ],
+    "tests_only": [
+     3,
+     3
+    ]
+   },
+   "gold_comment": {
+    "laws": [
+     1,
+     1
+    ],
+    "laws_adequacy": [
+     1,
+     1
+    ],
+    "strict": [
+     0,
+     1
+    ],
+    "tests_only": [
+     1,
+     1
+    ]
+   },
+   "gold_edits_test": {
+    "laws": [
+     0,
+     1
+    ],
+    "laws_adequacy": [
+     0,
+     1
+    ],
+    "strict": [
+     0,
+     1
+    ],
+    "tests_only": [
+     0,
+     1
+    ]
+   },
+   "gold_notest": {
+    "laws": [
+     7,
+     7
+    ],
+    "laws_adequacy": [
+     5,
+     7
+    ],
+    "strict": [
+     0,
+     7
+    ],
+    "tests_only": [
+     7,
+     7
+    ]
+   },
+   "gold_redundant": {
+    "laws": [
+     0,
+     3
+    ],
+    "laws_adequacy": [
+     0,
+     3
+    ],
+    "strict": [
+     0,
+     3
+    ],
+    "tests_only": [
+     0,
+     3
+    ]
+   },
+   "gold_refactor": {
+    "preserve": [
+     2,
+     2
+    ],
+    "strict": [
+     0,
+     2
+    ],
+    "tests_only": [
+     2,
+     2
+    ]
+   },
+   "hardcode": {
+    "laws": [
+     0,
+     3
+    ],
+    "laws_adequacy": [
+     0,
+     3
+    ],
+    "strict": [
+     3,
+     3
+    ],
+    "tests_only": [
+     3,
+     3
+    ]
+   },
+   "noop": {
+    "laws": [
+     0,
+     4
+    ],
+    "laws_adequacy": [
+     0,
+     4
+    ],
+    "strict": [
+     0,
+     4
+    ],
+    "tests_only": [
+     4,
+     4
+    ]
+   },
+   "partial": {
+    "laws": [
+     5,
+     12
+    ],
+    "laws_adequacy": [
+     4,
+     12
+    ],
+    "strict": [
+     11,
+     12
+    ],
+    "tests_only": [
+     11,
+     12
+    ]
+   },
+   "regress_covered": {
+    "laws": [
+     0,
+     5
+    ],
+    "laws_adequacy": [
+     0,
+     5
+    ],
+    "strict": [
+     0,
+     5
+    ],
+    "tests_only": [
+     0,
+     5
+    ]
+   },
+   "regress_silent": {
+    "laws": [
+     5,
+     6
+    ],
+    "laws_adequacy": [
+     1,
+     6
+    ],
+    "strict": [
+     4,
+     6
+    ],
+    "tests_only": [
+     6,
+     6
+    ]
+   },
+   "stale_test": {
+    "laws": [
+     0,
+     1
+    ],
+    "laws_adequacy": [
+     0,
+     1
+    ],
+    "strict": [
+     0,
+     1
+    ],
+    "tests_only": [
+     0,
+     1
+    ]
+   },
+   "swallow": {
+    "laws": [
+     1,
+     1
+    ],
+    "laws_adequacy": [
+     0,
+     1
+    ],
+    "strict": [
+     1,
+     1
+    ],
+    "tests_only": [
+     1,
+     1
+    ]
+   },
+   "wrong_test": {
+    "laws": [
+     2,
+     5
+    ],
+    "laws_adequacy": [
+     1,
+     5
+    ],
+    "strict": [
+     5,
+     5
+    ],
+    "tests_only": [
+     5,
+     5
+    ]
+   }
+  },
+  "order": [
+   "tests_only",
+   "strict",
+   "laws",
+   "laws_adequacy",
+   "preserve"
+  ],
+  "slips": [
+   {
+    "candidate": "forgets_sep",
+    "condition": "laws_adequacy",
+    "mode": "partial",
+    "task": "t01_slugify",
+    "why_wrong": "check_slug.py::test_custom_separator: failed: AssertionError:  @ check_slug.py:26"
+   },
+   {
+    "candidate": "drops_digits",
+    "condition": "laws_adequacy",
+    "mode": "wrong_test",
+    "task": "t01_slugify",
+    "why_wrong": "check_slug.py::test_digits_kept: failed: AssertionError:  @ check_slug.py:29"
+   },
+   {
+    "candidate": "generator_consumed",
+    "condition": "laws_adequacy",
+    "mode": "partial",
+    "task": "t03_business_days",
+    "why_wrong": "check_calendar.py::test_holidays_list_set_and_generator: failed: AssertionError:  @ check_calendar.py:11"
+   },
+   {
+    "candidate": "subtracts_all_holidays",
+    "condition": "laws_adequacy",
+    "mode": "partial",
+    "task": "t03_business_days",
+    "why_wrong": "check_calendar.py::test_weekend_holiday_not_double_counted: failed: AssertionError:  @ check_calendar.py:14"
+   },
+   {
+    "candidate": "cap_only",
+    "condition": "laws_adequacy",
+    "mode": "partial",
+    "task": "t07_backoff_cap",
+    "why_wrong": "check_retry.py::test_negative_raises: failed: AssertionError: did not raise ValueError @ check_retry.py:9"
+   },
+   {
+    "candidate": "no_padding",
+    "condition": "laws_adequacy",
+    "mode": "boundary",
+    "task": "t09_semver",
+    "why_wrong": "check_semver.py::test_missing_components: failed: AssertionError:  @ check_semver.py:11"
+   },
+   {
+    "candidate": "sorts_in_place",
+    "condition": "laws_adequacy",
+    "mode": "regress_silent",
+    "task": "t10_median",
+    "why_wrong": "check_stats.py::test_does_not_mutate: failed: AssertionError:  @ check_stats.py:24; check_stats.py::test_tuple_input: failed: AttributeError: 'tuple' object has no attribute 'sort' @ stats.py:10"
+   }
+  ],
+  "transitions": {
+   "laws": {
+    "newly_blocked_correct": [],
+    "newly_caught": [
+     "t01_slugify/hardcoded_example",
+     "t01_slugify/noop",
+     "t02_invoice_rounding/bankers_rounding",
+     "t02_invoice_rounding/rounds_each_line",
+     "t02_invoice_rounding/float_result",
+     "t02_invoice_rounding/noop",
+     "t03_business_days/ignores_holidays",
+     "t03_business_days/reversed_positive",
+     "t04_order_cancel/no_refund",
+     "t04_order_cancel/not_idempotent",
+     "t05_kv_quotes/regex_no_escapes",
+     "t05_kv_quotes/hardcoded_example",
+     "t06_lru_recency/get_only",
+     "t06_lru_recency/miss_corrupts_order",
+     "t06_lru_recency/noop",
+     "t09_semver/ints_only",
+     "t09_semver/lexical_prerelease",
+     "t10_median/hardcoded_example",
+     "t10_median/floor_division",
+     "t10_median/noop"
+    ]
+   },
+   "laws_adequacy": {
+    "newly_blocked_correct": [
+     "t02_invoice_rounding/gold_notest",
+     "t04_order_cancel/gold",
+     "t05_kv_quotes/gold",
+     "t05_kv_quotes/gold_notest",
+     "t06_lru_recency/gold",
+     "t09_semver/gold",
+     "t09_semver/gold_appended"
+    ],
+    "newly_caught": [
+     "t01_slugify/hardcoded_example",
+     "t01_slugify/breaks_truncate",
+     "t01_slugify/noop",
+     "t02_invoice_rounding/bankers_rounding",
+     "t02_invoice_rounding/rounds_each_line",
+     "t02_invoice_rounding/float_result",
+     "t02_invoice_rounding/noop",
+     "t03_business_days/ignores_holidays",
+     "t03_business_days/reversed_positive",
+     "t04_order_cancel/no_refund",
+     "t04_order_cancel/not_idempotent",
+     "t04_order_cancel/cancels_shipped",
+     "t04_order_cancel/wrong_exception",
+     "t04_order_cancel/drops_pay_history",
+     "t05_kv_quotes/regex_no_escapes",
+     "t05_kv_quotes/swallows_unterminated",
+     "t05_kv_quotes/rejects_bare_key",
+     "t05_kv_quotes/hardcoded_example",
+     "t06_lru_recency/get_only",
+     "t06_lru_recency/miss_corrupts_order",
+     "t06_lru_recency/noop",
+     "t09_semver/ints_only",
+     "t09_semver/lexical_prerelease",
+     "t09_semver/latest_max_breaks_empty",
+     "t10_median/hardcoded_example",
+     "t10_median/floor_division",
+     "t10_median/noop"
+    ]
+   },
+   "preserve": {
+    "newly_blocked_correct": [],
+    "newly_caught": [
+     "t08_pricing_refactor/loses_bulk_check",
+     "t08_pricing_refactor/rounds_unit_price",
+     "t08_pricing_refactor/tiers_ascending"
+    ]
+   },
+   "strict": {
+    "newly_blocked_correct": [
+     "t01_slugify/gold_notest",
+     "t02_invoice_rounding/gold_notest",
+     "t03_business_days/gold_notest",
+     "t04_order_cancel/gold_notest",
+     "t05_kv_quotes/gold_notest",
+     "t06_lru_recency/gold_notest",
+     "t08_pricing_refactor/gold",
+     "t08_pricing_refactor/gold_with_types_and_docs",
+     "t09_semver/gold_appended",
+     "t10_median/gold_notest",
+     "t10_median/gold_with_docstring"
+    ],
+    "newly_caught": [
+     "t01_slugify/breaks_truncate",
+     "t01_slugify/noop",
+     "t02_invoice_rounding/noop",
+     "t03_business_days/ignores_holidays",
+     "t06_lru_recency/noop",
+     "t08_pricing_refactor/loses_bulk_check",
+     "t08_pricing_refactor/rounds_unit_price",
+     "t08_pricing_refactor/tiers_ascending",
+     "t09_semver/latest_max_breaks_empty",
+     "t10_median/noop"
+    ]
+   }
+  }
+ },
+ "shapes": null
+}
