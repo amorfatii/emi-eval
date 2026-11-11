@@ -107,6 +107,19 @@ CONDITIONS: dict[str, Condition] = {
             laws=True,
             description="The person wrote a few laws (properties/examples) in .emi/laws before the task.",
         ),
+        # Identical to `laws`; only which laws are installed differs. The laws
+        # are not part of the task: a driver passes them in (see
+        # results-2026-11-11-drafted/scripts/run_drafted.py).
+        Condition(
+            "drafted_no_questions",
+            laws=True,
+            description="Laws a helper drafted from the prompt and the baseline alone.",
+        ),
+        Condition(
+            "drafted_questions",
+            laws=True,
+            description="Laws a helper drafted after asking the person up to 5 multiple-choice questions.",
+        ),
         Condition(
             "laws_adequacy",
             laws=True,

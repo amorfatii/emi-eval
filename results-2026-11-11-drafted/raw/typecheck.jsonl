@@ -1,0 +1,81 @@
+{"task": "t01_slugify", "candidate": "<baseline>", "errors": []}
+{"task": "t01_slugify", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "gold_appended", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "gold_redundant", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "forgets_sep", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "hardcoded_example", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "drops_digits", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "drops_accents", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "breaks_truncate", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t01_slugify", "candidate": "noop", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t02_invoice_rounding", "candidate": "<baseline>", "errors": []}
+{"task": "t02_invoice_rounding", "candidate": "gold", "label": "correct", "errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 10, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 10, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_by_checker": {"pyright": 1}}
+{"task": "t02_invoice_rounding", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t02_invoice_rounding", "candidate": "gold_redundant", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t02_invoice_rounding", "candidate": "bankers_rounding", "label": "incorrect", "errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 6, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 6, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_by_checker": {"pyright": 1}}
+{"task": "t02_invoice_rounding", "candidate": "rounds_each_line", "label": "incorrect", "errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 10, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_errors": [{"checker": "pyright", "file": "tests/test_billing_decimal.py", "line": 10, "code": "reportArgumentType", "message": "Argument of type \"Literal['0.2']\" cannot be assigned to parameter \"tax_rate\" of type \"int\" in function \"invoice_total\"\n\u00a0\u00a0\"Literal['0.2']\" is not assignable to \"int\""}], "new_by_checker": {"pyright": 1}}
+{"task": "t02_invoice_rounding", "candidate": "float_result", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t02_invoice_rounding", "candidate": "noop", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "<baseline>", "errors": []}
+{"task": "t03_business_days", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "gold_appended", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "generator_consumed", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "subtracts_all_holidays", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "inclusive_end", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "ignores_holidays", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t03_business_days", "candidate": "reversed_positive", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "<baseline>", "errors": []}
+{"task": "t04_order_cancel", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "no_refund", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "not_idempotent", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "cancels_shipped", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "wrong_exception", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t04_order_cancel", "candidate": "drops_pay_history", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "<baseline>", "errors": []}
+{"task": "t05_kv_quotes", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "regex_no_escapes", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "swallows_unterminated", "label": "incorrect", "errors": [{"checker": "mypy", "file": "kvparse.py", "line": 43, "code": "var-annotated", "message": "Need type annotation for \"out\" (hint: \"out: dict[<type>, <type>] = ...\")"}], "new_errors": [{"checker": "mypy", "file": "kvparse.py", "line": 43, "code": "var-annotated", "message": "Need type annotation for \"out\" (hint: \"out: dict[<type>, <type>] = ...\")"}], "new_by_checker": {"mypy": 1}}
+{"task": "t05_kv_quotes", "candidate": "keeps_empty_segments", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "rejects_bare_key", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t05_kv_quotes", "candidate": "hardcoded_example", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "<baseline>", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}]}
+{"task": "t06_lru_recency", "candidate": "gold", "label": "correct", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "gold_redundant", "label": "correct", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "gold_notest", "label": "correct", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "get_only", "label": "incorrect", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "miss_corrupts_order", "label": "incorrect", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "evicts_newest", "label": "incorrect", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t06_lru_recency", "candidate": "noop", "label": "incorrect", "errors": [{"checker": "mypy", "file": "lru.py", "line": 6, "code": "var-annotated", "message": "Need type annotation for \"_data\" (hint: \"_data: dict[<type>, <type>] = ...\")"}, {"checker": "mypy", "file": "lru.py", "line": 7, "code": "var-annotated", "message": "Need type annotation for \"_order\" (hint: \"_order: list[<type>] = ...\")"}], "new_errors": [], "new_by_checker": {}}
+{"task": "t07_backoff_cap", "candidate": "<baseline>", "errors": []}
+{"task": "t07_backoff_cap", "candidate": "gold_updates_old_test", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t07_backoff_cap", "candidate": "stale_old_test", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t07_backoff_cap", "candidate": "cap_only", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t07_backoff_cap", "candidate": "falsy_cap", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t07_backoff_cap", "candidate": "cap_before_scaling", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "<baseline>", "errors": []}
+{"task": "t08_pricing_refactor", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "gold_with_types_and_docs", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "loses_bulk_check", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "rounds_unit_price", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "strict_threshold", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t08_pricing_refactor", "candidate": "tiers_ascending", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "<baseline>", "errors": []}
+{"task": "t09_semver", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "gold_appended", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "ints_only", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "lexical_prerelease", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "no_padding", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t09_semver", "candidate": "latest_max_breaks_empty", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "<baseline>", "errors": []}
+{"task": "t10_median", "candidate": "gold", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "gold_notest", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "gold_with_docstring", "label": "correct", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "sorts_in_place", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "always_two_middle", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "hardcoded_example", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "floor_division", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
+{"task": "t10_median", "candidate": "noop", "label": "incorrect", "errors": [], "new_errors": [], "new_by_checker": {}}
