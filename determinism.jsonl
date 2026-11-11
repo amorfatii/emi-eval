@@ -1,0 +1,170 @@
+{"case": "t01_slugify/hardcoded_example/laws", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t01_slugify/gold/laws", "check": "repeat", "observed": "stop; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t01_slugify/gold/laws", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws", "check": "replay", "observed": "exit 0 {\"decision_id\":\"53995cad2611fa2a4faeee382ec67264ae5ae7c90426d3f14cf3f3dbb61430dd\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws", "check": "replay", "observed": "exit 0 {\"decision_id\":\"79d908caa40e49ad04c9ae0ed71d3976eaccbeb868afbf9a97e63c769e45dff5\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/hardcoded_example/laws umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t01_slugify/gold/laws umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws", "check": "replay", "observed": "exit 0 {\"decision_id\":\"a57ff0d185b27ca4ee465b1633756e50ac6c614c2882a239b0e55afc15f3da51\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only", "check": "replay", "observed": "exit 0 {\"decision_id\":\"9f5f106d38db7064284f676515d4cc631f6097bb114edbe29973e707f8070769\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t02_invoice_rounding/bankers_rounding/laws umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t03_business_days/inclusive_end/tests_only umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws", "check": "replay", "observed": "exit 0 {\"decision_id\":\"5adbab9b77f6b1184e4588868488e6bf5cd70c9cbae274bd69c577514850424c\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy", "check": "replay", "observed": "exit 0 {\"decision_id\":\"2c64e0c8553b50ff882a0b7e56e516adc1ee0682b8fbb745a9887bba95cb652a\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t04_order_cancel/no_refund/laws umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only", "check": "repeat", "observed": "ask_person; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t06_lru_recency/get_only/laws_adequacy umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only", "check": "replay", "observed": "exit 0 {\"decision_id\":\"18b5c6e40e5b6127c124cae38935b4da0c56d72227238875dcb68ba0c9fe7566\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve", "check": "repeat", "observed": "repair; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve", "check": "replay", "observed": "exit 0 {\"decision_id\":\"9a1663bb288d27ce224430d75641f86dafded83539a974cd4af9ee0e2e29b886\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/rounds_unit_price/preserve umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve", "check": "repeat", "observed": "stop; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t07_backoff_cap/gold_updates_old_test/tests_only umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve", "check": "replay", "observed": "exit 0 {\"decision_id\":\"b083cdf1cd142799a2de79f29ba5057649cfc5d0f9b9968011c434ac45930ab5\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/laws_adequacy", "check": "repeat", "observed": "stop; 1 distinct decision_id over 3 runs", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/laws_adequacy", "check": "warm_cold", "observed": "same", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t08_pricing_refactor/gold/preserve umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/laws_adequacy", "check": "replay", "observed": "exit 0 {\"decision_id\":\"e903b2121b919f2e14244c93822067e062118dfd4a50313ce0b78c3c53b8e61e\",\"differences\":[],\"replayed_decision_id", "pass": true}
+{"case": "t10_median/gold/laws_adequacy TZ=Pacific/Kiritimati", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws README added", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy LC_ALL=de_DE.UTF-8,LANG", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/laws_adequacy PYTHONHASHSEED=12345", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws added test file renamed", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy PYTHONWARNINGS=error", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws comment at end of product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy PYTHONPATH=/nonexistent", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t01_slugify/gold/laws trailing blank lines in product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy HYPOTHESIS_PROFILE=ci", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/gold/strict README added", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy PYTEST_ADDOPTS=-x -p no:randomly", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/gold/strict added test file renamed", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy HOME=elsewhere", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t06_lru_recency/gold/strict comment at end of product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t06_lru_recency/gold/strict trailing blank lines in product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy run from subdirectory", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/laws_adequacy repository at another path", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/tests_only README added", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/laws_adequacy umask 077", "check": "host", "observed": "same decision", "pass": true}
+{"case": "t10_median/gold/tests_only added test file renamed", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/tests_only comment at end of product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t10_median/gold/tests_only trailing blank lines in product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t03_business_days/gold_appended/laws README added", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t03_business_days/gold_appended/laws comment at end of product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t09_semver/lexical_prerelease/laws README added", "check": "noop_tree", "observed": "repair -> repair", "pass": true}
+{"case": "t03_business_days/gold_appended/laws trailing blank lines in product module", "check": "noop_tree", "observed": "stop -> stop", "pass": true}
+{"case": "t09_semver/lexical_prerelease/laws added test file renamed", "check": "noop_tree", "observed": "repair -> repair", "pass": true}
+{"case": "flaky baseline test, unrelated clean change", "check": "flaky", "observed": "stop, quarantined=1", "pass": true}
+{"case": "t09_semver/lexical_prerelease/laws added test functions reordered", "check": "noop_tree", "observed": "repair -> repair", "pass": true}
+{"case": "t09_semver/lexical_prerelease/laws comment at end of product module", "check": "noop_tree", "observed": "repair -> repair", "pass": true}
+{"case": "t09_semver/lexical_prerelease/laws trailing blank lines in product module", "check": "noop_tree", "observed": "repair -> repair", "pass": true}
+{"case": "candidate makes triple() flaky (6 trials)", "check": "flaky", "observed": "actions=['stop', 'repair', 'stop', 'stop', 'incomplete', 'stop']; stop in 4/6 (slip probability per check ~ P(both runs lucky))", "pass": true}
+{"case": "first wrong fix: law finds a counterexample", "check": "memory", "observed": "repair, counterexample x=1002, found={\".emi/laws/test_clamp_law.py::test_clamps_at_1000\": [\"4203ea\"]}", "pass": true}
+{"case": "holding law test_nand_is_not_and_finite", "check": "every_input", "observed": "every_input=True (expected True), status=holds", "pass": true}
+{"case": "holding law test_small_range_finite", "check": "every_input", "observed": "every_input=True (expected True), status=holds", "pass": true}
+{"case": "holding law test_all_integers_infinite", "check": "every_input", "observed": "every_input=False (expected False), status=holds", "pass": true}
+{"case": "holding law test_all_text_infinite", "check": "every_input", "observed": "every_input=False (expected False), status=holds", "pass": true}
+{"case": "'fix' wrong only at x=1002, same session (memory)", "check": "memory", "observed": "with memory: repair; without memory: stop", "pass": true}
+{"case": "special-cases the reported counterexample only", "check": "memory", "observed": "repair: .emi/laws/test_clamp_law.py::test_clamps_at_1000 is a law that does not hold yet; make the code satisfy it. It", "pass": true}
+{"case": "failing law over st.integers()", "check": "every_input", "observed": "every_input=True, status=broken", "pass": false}
