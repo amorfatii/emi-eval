@@ -1,0 +1,88 @@
+{
+ "task": "t06_lru_recency",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "When get() is called on a key that isn't in the cache, what should happen?",
+   "choices": [
+    "Return None and change nothing",
+    "Raise KeyError",
+    "Return a default value passed by the caller",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "When put() updates an existing key in a full cache, what should happen?",
+   "choices": [
+    "Update the value and mark the key most recent, with no eviction",
+    "Same as above, but also check capacity afterward",
+    "Treat it as a new insert, evicting first if full",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should other read-style methods (e.g. __contains__, peek, items, keys, __len__) count as a use and change recency?",
+   "choices": [
+    "No, only get() and put() change recency",
+    "Yes, any key access counts as a use",
+    "Only get() and put(); other methods must not change order",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should iteration or inspection order reflect recency, if the class exposes it (keys(), items(), repr)?",
+   "choices": [
+    "Least recent first, most recent last",
+    "Most recent first",
+    "Keep the current order; only the eviction behavior changes",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen with capacity 0 (or negative)?",
+   "choices": [
+    "Keep current behavior",
+    "Raise ValueError at construction",
+    "Store nothing; every put is a no-op",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "When get() is called on a key that isn't in the cache, what should happen?",
+   "choice": "Return None and change nothing"
+  },
+  {
+   "q": "When put() updates an existing key in a full cache, what should happen?",
+   "choice": "Update the value and mark the key most recent, with no eviction"
+  },
+  {
+   "q": "Should other read-style methods (e.g. __contains__, peek, items, keys, __len__) count as a use and change recency?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should iteration or inspection order reflect recency, if the class exposes it (keys(), items(), repr)?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should happen with capacity 0 (or negative)?",
+   "choice": "Keep current behavior"
+  }
+ ],
+ "drafted": "import pytest\nfrom hypothesis import given, strategies as st\n\nfrom lru import LRUCache\n\n\ndef test_get_present_key_makes_it_most_recent():\n    \"\"\"After get() of a present key, a full cache evicts a different, least recently used key on the next new put().\"\"\"\n    c = LRUCache(2)\n    c.put(\"a\", 1)\n    c.put(\"b\", 2)\n    assert c.get(\"a\") == 1\n    c.put(\"c\", 3)\n    assert c.get(\"b\") is None\n    assert c.get(\"a\") == 1\n    assert c.get(\"c\") == 3\n\n\ndef test_put_existing_key_makes_it_most_recent():\n    \"\"\"After put() of an existing key, a full cache evicts the least recently used other key on the next new put().\"\"\"\n    c = LRUCache(2)\n    c.put(\"a\", 1)\n    c.put(\"b\", 2)\n    c.put(\"a\", 10)\n    c.put(\"c\", 3)\n    assert c.get(\"b\") is None\n    assert c.get(\"a\") == 10\n    assert c.get(\"c\") == 3\n\n\ndef test_put_existing_key_in_full_cache_updates_value_without_eviction():\n    \"\"\"put() of an existing key in a full cache updates its value and evicts nothing.\"\"\"\n    c = LRUCache(2)\n    c.put(\"a\", 1)\n    c.put(\"b\", 2)\n    c.put(\"b\", 20)\n    assert c.get(\"a\") == 1\n    assert c.get(\"b\") == 20\n\n\ndef test_get_missing_key_returns_none():\n    \"\"\"get() of a key not in the cache returns None.\"\"\"\n    c = LRUCache(2)\n    assert c.get(\"x\") is None\n\n\ndef test_get_missing_key_changes_nothing():\n    \"\"\"get() of a missing key does not change recency order or evict anything.\"\"\"\n    c = LRUCache(2)\n    c.put(\"a\", 1)\n    c.put(\"b\", 2)\n    assert c.get(\"zzz\") is None\n    c.put(\"c\", 3)\n    assert c.get(\"a\") is None\n    assert c.get(\"b\") == 2\n    assert c.get(\"c\") == 3\n\n\ndef test_full_cache_evicts_least_recently_used_after_mixed_use():\n    \"\"\"In a full cache the key whose last get or put is oldest is the one evicted.\"\"\"\n    c = LRUCache(3)\n    c.put(1, \"a\")\n    c.put(2, \"b\")\n    c.put(3, \"c\")\n    c.get(1)\n    c.put(2, \"bb\")\n    c.put(4, \"d\")\n    assert c.get(3) is None\n    assert c.get(1) == \"a\"\n    assert c.get(2) == \"bb\"\n    assert c.get(4) == \"d\"\n\n\ndef test_new_key_put_without_reuse_evicts_oldest_inserted():\n    \"\"\"With no reads or updates, the oldest inserted key is evicted first.\"\"\"\n    c = LRUCache(2)\n    c.put(\"a\", 1)\n    c.put(\"b\", 2)\n    c.put(\"c\", 3)\n    assert c.get(\"a\") is None\n    assert c.get(\"b\") == 2\n    assert c.get(\"c\") == 3\n\n\nclass _Model:\n    def __init__(self, cap):\n        self.cap = cap\n        self.order = []  # least recent first\n        self.d = {}\n\n    def get(self, k):\n        if k not in self.d:\n            return None\n        self.order.remove(k)\n        self.order.append(k)\n        return self.d[k]\n\n    def put(self, k, v):\n        if k in self.d:\n            self.order.remove(k)\n        elif len(self.d) >= self.cap:\n            old = self.order.pop(0)\n            del self.d[old]\n        self.d[k] = v\n        self.order.append(k)\n\n\nops = st.lists(\n    st.one_of(\n        st.tuples(st.just(\"get\"), st.integers(0, 6), st.just(0)),\n        st.tuples(st.just(\"put\"), st.integers(0, 6), st.integers(0, 100)),\n    ),\n    max_size=60,\n)\n\n\n@given(st.integers(1, 5), ops)\ndef test_behaves_like_least_recently_used_cache(cap, operations):\n    \"\"\"For any sequence of get and put calls, the cache returns the same values as a reference least-recently-used cache.\"\"\"\n    c = LRUCache(cap)\n    m = _Model(cap)\n    for op, k, v in operations:\n        if op == \"get\":\n            assert c.get(k) == m.get(k)\n        else:\n            c.put(k, v)\n            m.put(k, v)\n    for k in range(7):\n        assert c.get(k) == m.get(k)\n",
+ "rules": "import pytest\nfrom hypothesis import given, strategies as st\nfrom lru import LRUCache\n\ndef test_get_present_key_makes_it_most_recent():\n    \"\"\"After get() of a present key, a full cache evicts a different, least recently used key on the next new put().\"\"\"\n    c = LRUCache(2)\n    c.put('a', 1)\n    c.put('b', 2)\n    assert c.get('a') == 1\n    c.put('c', 3)\n    assert c.get('b') is None\n    assert c.get('a') == 1\n    assert c.get('c') == 3\n\ndef test_put_existing_key_makes_it_most_recent():\n    \"\"\"After put() of an existing key, a full cache evicts the least recently used other key on the next new put().\"\"\"\n    c = LRUCache(2)\n    c.put('a', 1)\n    c.put('b', 2)\n    c.put('a', 10)\n    c.put('c', 3)\n    assert c.get('b') is None\n    assert c.get('a') == 10\n    assert c.get('c') == 3\n\ndef test_put_existing_key_in_full_cache_updates_value_without_eviction():\n    \"\"\"put() of an existing key in a full cache updates its value and evicts nothing.\"\"\"\n    c = LRUCache(2)\n    c.put('a', 1)\n    c.put('b', 2)\n    c.put('b', 20)\n    assert c.get('a') == 1\n    assert c.get('b') == 20\n\ndef test_get_missing_key_changes_nothing():\n    \"\"\"get() of a missing key does not change recency order or evict anything.\"\"\"\n    c = LRUCache(2)\n    c.put('a', 1)\n    c.put('b', 2)\n    assert c.get('zzz') is None\n    c.put('c', 3)\n    assert c.get('a') is None\n    assert c.get('b') == 2\n    assert c.get('c') == 3\n\ndef test_full_cache_evicts_least_recently_used_after_mixed_use():\n    \"\"\"In a full cache the key whose last get or put is oldest is the one evicted.\"\"\"\n    c = LRUCache(3)\n    c.put(1, 'a')\n    c.put(2, 'b')\n    c.put(3, 'c')\n    c.get(1)\n    c.put(2, 'bb')\n    c.put(4, 'd')\n    assert c.get(3) is None\n    assert c.get(1) == 'a'\n    assert c.get(2) == 'bb'\n    assert c.get(4) == 'd'\n\ndef test_new_key_put_without_reuse_evicts_oldest_inserted():\n    \"\"\"With no reads or updates, the oldest inserted key is evicted first.\"\"\"\n    c = LRUCache(2)\n    c.put('a', 1)\n    c.put('b', 2)\n    c.put('c', 3)\n    assert c.get('a') is None\n    assert c.get('b') == 2\n    assert c.get('c') == 3\n\nclass _Model:\n\n    def __init__(self, cap):\n        self.cap = cap\n        self.order = []\n        self.d = {}\n\n    def get(self, k):\n        if k not in self.d:\n            return None\n        self.order.remove(k)\n        self.order.append(k)\n        return self.d[k]\n\n    def put(self, k, v):\n        if k in self.d:\n            self.order.remove(k)\n        elif len(self.d) >= self.cap:\n            old = self.order.pop(0)\n            del self.d[old]\n        self.d[k] = v\n        self.order.append(k)\nops = st.lists(st.one_of(st.tuples(st.just('get'), st.integers(0, 6), st.just(0)), st.tuples(st.just('put'), st.integers(0, 6), st.integers(0, 100))), max_size=60)\n\n@given(st.integers(1, 5), ops)\ndef test_behaves_like_least_recently_used_cache(cap, operations):\n    \"\"\"For any sequence of get and put calls, the cache returns the same values as a reference least-recently-used cache.\"\"\"\n    c = LRUCache(cap)\n    m = _Model(cap)\n    for op, k, v in operations:\n        if op == 'get':\n            assert c.get(k) == m.get(k)\n        else:\n            c.put(k, v)\n            m.put(k, v)\n    for k in range(7):\n        assert c.get(k) == m.get(k)",
+ "dropped_no_teeth": [
+  "test_get_missing_key_returns_none"
+ ],
+ "kept": [
+  "test_behaves_like_least_recently_used_cache",
+  "test_full_cache_evicts_least_recently_used_after_mixed_use",
+  "test_get_missing_key_changes_nothing",
+  "test_get_present_key_makes_it_most_recent",
+  "test_new_key_put_without_reuse_evicts_oldest_inserted",
+  "test_put_existing_key_in_full_cache_updates_value_without_eviction",
+  "test_put_existing_key_makes_it_most_recent"
+ ],
+ "cost_usd": 0.0672
+}

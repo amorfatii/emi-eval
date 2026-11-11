@@ -1,0 +1,91 @@
+{
+ "task": "t01_slugify",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "What should slugify return when the input has no alphanumerics at all (e.g. '!!!' or '')?",
+   "choices": [
+    "Empty string",
+    "Raise ValueError",
+    "Return a fallback such as 'n-a'",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What if `sep` is an empty string?",
+   "choices": [
+    "Allowed: separators are simply removed, so 'a b' gives 'ab'",
+    "Raise ValueError",
+    "Fall back to '-'",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What if `sep` is more than one character (e.g. '--' or '_x_')?",
+   "choices": [
+    "Use it as given, one copy per run, and strip it from both ends as a whole",
+    "Only single-character sep is supported; raise ValueError otherwise",
+    "Use it as given, but ends are stripped one char at a time",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What if `sep` is itself alphanumeric (e.g. 'x' or '0')?",
+   "choices": [
+    "Not special: collapse and strip by the same rules, even though it may merge with real letters",
+    "Raise ValueError",
+    "Leave as is and don't handle it",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Characters that fold away in accent stripping, like '\u00e9' to 'e', stay as they are. What about characters that are dropped entirely, like '\u65e5\u672c' or '\u20ac'? Should they count as separators?",
+   "choices": [
+    "Dropped silently as now, so 'a\u20acb' gives 'ab'",
+    "Treat them as non-alphanumerics, so 'a\u20acb' gives 'a-b'",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "What should slugify return when the input has no alphanumerics at all (e.g. '!!!' or '')?",
+   "choice": "Empty string"
+  },
+  {
+   "q": "What if `sep` is an empty string?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What if `sep` is more than one character (e.g. '--' or '_x_')?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What if `sep` is itself alphanumeric (e.g. 'x' or '0')?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Characters that fold away in accent stripping, like '\u00e9' to 'e', stay as they are. What about characters that are dropped entirely, like '\u65e5\u672c' or '\u20ac'? Should they count as separators?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import re\n\nfrom hypothesis import given, strategies as st\n\nfrom textutil import slugify\n\nSEPS = st.sampled_from([\"-\", \"_\", \".\", \"~\", \"+\"])\n\n\ndef test_task_example():\n    \"\"\"slugify('  Hello,  World! ') returns 'hello-world'.\"\"\"\n    assert slugify(\"  Hello,  World! \") == \"hello-world\"\n\n\ndef test_runs_of_non_alphanumerics_collapse_to_one_separator():\n    \"\"\"A run of several non-alphanumerics between words becomes a single separator.\"\"\"\n    assert slugify(\"a !!!   b\") == \"a-b\"\n    assert slugify(\"one,,,two...three\") == \"one-two-three\"\n\n\ndef test_leading_and_trailing_separators_are_stripped():\n    \"\"\"Separators at the start and end of the result are removed.\"\"\"\n    assert slugify(\"---abc---\") == \"abc\"\n    assert slugify(\"!!hi!!\") == \"hi\"\n\n\ndef test_custom_sep_is_used_for_collapsing_and_stripping():\n    \"\"\"A custom sep joins words once per run and is stripped from both ends.\"\"\"\n    assert slugify(\"  Hello,  World! \", sep=\"_\") == \"hello_world\"\n    assert slugify(\"  Hello,  World! \", sep=\".\") == \"hello.world\"\n\n\ndef test_no_alphanumerics_gives_empty_string():\n    \"\"\"Input with no alphanumerics gives an empty string.\"\"\"\n    assert slugify(\"\") == \"\"\n    assert slugify(\"!!!\") == \"\"\n    assert slugify(\"  \\t\\n \") == \"\"\n    assert slugify(\"!!!\", sep=\"_\") == \"\"\n\n\ndef test_lowercases_and_folds_accents():\n    \"\"\"Letters are lowercased and accents are folded to their ASCII base.\"\"\"\n    assert slugify(\"Hello\") == \"hello\"\n    assert slugify(\"Cr\\u00e8me br\\u00fbl\\u00e9e\") == \"creme-brulee\"\n\n\ndef test_digits_are_kept():\n    \"\"\"Digits are alphanumerics and are kept.\"\"\"\n    assert slugify(\"Room 101, Floor 2\") == \"room-101-floor-2\"\n\n\n@given(st.text(), SEPS)\ndef test_result_has_no_leading_or_trailing_sep(text, sep):\n    \"\"\"The result never starts or ends with the separator.\"\"\"\n    out = slugify(text, sep=sep)\n    assert not out.startswith(sep)\n    assert not out.endswith(sep)\n\n\n@given(st.text(), SEPS)\ndef test_result_has_no_repeated_sep(text, sep):\n    \"\"\"The result never contains two separators in a row.\"\"\"\n    assert sep + sep not in slugify(text, sep=sep)\n\n\n@given(st.text(), SEPS)\ndef test_result_only_alphanumerics_and_sep(text, sep):\n    \"\"\"The result contains only lowercase ASCII letters, digits and the separator.\"\"\"\n    out = slugify(text, sep=sep)\n    allowed = set(\"abcdefghijklmnopqrstuvwxyz0123456789\") | {sep}\n    assert set(out) <= allowed\n\n\n@given(st.text(alphabet=st.characters(blacklist_characters=\"-_.~+\", max_codepoint=127)), SEPS)\ndef test_ascii_words_split_on_non_alphanumerics(text, sep):\n    \"\"\"For ASCII input, the result is the lowercase alphanumeric words joined by single separators.\"\"\"\n    words = re.findall(r\"[a-z0-9]+\", text.lower())\n    assert slugify(text, sep=sep) == sep.join(words)\n\n\n@given(st.text(), SEPS)\ndef test_idempotent(text, sep):\n    \"\"\"Slugifying a slug with the same separator returns it unchanged.\"\"\"\n    once = slugify(text, sep=sep)\n    assert slugify(once, sep=sep) == once\n",
+ "rules": "import re\nfrom hypothesis import given, strategies as st\nfrom textutil import slugify\nSEPS = st.sampled_from(['-', '_', '.', '~', '+'])\n\ndef test_task_example():\n    \"\"\"slugify('  Hello,  World! ') returns 'hello-world'.\"\"\"\n    assert slugify('  Hello,  World! ') == 'hello-world'\n\ndef test_runs_of_non_alphanumerics_collapse_to_one_separator():\n    \"\"\"A run of several non-alphanumerics between words becomes a single separator.\"\"\"\n    assert slugify('a !!!   b') == 'a-b'\n    assert slugify('one,,,two...three') == 'one-two-three'\n\ndef test_leading_and_trailing_separators_are_stripped():\n    \"\"\"Separators at the start and end of the result are removed.\"\"\"\n    assert slugify('---abc---') == 'abc'\n    assert slugify('!!hi!!') == 'hi'\n\ndef test_custom_sep_is_used_for_collapsing_and_stripping():\n    \"\"\"A custom sep joins words once per run and is stripped from both ends.\"\"\"\n    assert slugify('  Hello,  World! ', sep='_') == 'hello_world'\n    assert slugify('  Hello,  World! ', sep='.') == 'hello.world'\n\ndef test_no_alphanumerics_gives_empty_string():\n    \"\"\"Input with no alphanumerics gives an empty string.\"\"\"\n    assert slugify('') == ''\n    assert slugify('!!!') == ''\n    assert slugify('  \\t\\n ') == ''\n    assert slugify('!!!', sep='_') == ''\n\ndef test_lowercases_and_folds_accents():\n    \"\"\"Letters are lowercased and accents are folded to their ASCII base.\"\"\"\n    assert slugify('Hello') == 'hello'\n    assert slugify('Cr\u00e8me br\u00fbl\u00e9e') == 'creme-brulee'\n\ndef test_digits_are_kept():\n    \"\"\"Digits are alphanumerics and are kept.\"\"\"\n    assert slugify('Room 101, Floor 2') == 'room-101-floor-2'\n\n@given(st.text(), SEPS)\ndef test_result_has_no_leading_or_trailing_sep(text, sep):\n    \"\"\"The result never starts or ends with the separator.\"\"\"\n    out = slugify(text, sep=sep)\n    assert not out.startswith(sep)\n    assert not out.endswith(sep)\n\n@given(st.text(), SEPS)\ndef test_result_has_no_repeated_sep(text, sep):\n    \"\"\"The result never contains two separators in a row.\"\"\"\n    assert sep + sep not in slugify(text, sep=sep)\n\n@given(st.text(), SEPS)\ndef test_result_only_alphanumerics_and_sep(text, sep):\n    \"\"\"The result contains only lowercase ASCII letters, digits and the separator.\"\"\"\n    out = slugify(text, sep=sep)\n    allowed = set('abcdefghijklmnopqrstuvwxyz0123456789') | {sep}\n    assert set(out) <= allowed\n\n@given(st.text(alphabet=st.characters(blacklist_characters='-_.~+', max_codepoint=127)), SEPS)\ndef test_ascii_words_split_on_non_alphanumerics(text, sep):\n    \"\"\"For ASCII input, the result is the lowercase alphanumeric words joined by single separators.\"\"\"\n    words = re.findall('[a-z0-9]+', text.lower())\n    assert slugify(text, sep=sep) == sep.join(words)",
+ "dropped_no_teeth": [
+  "test_idempotent"
+ ],
+ "kept": [
+  "test_ascii_words_split_on_non_alphanumerics",
+  "test_custom_sep_is_used_for_collapsing_and_stripping",
+  "test_digits_are_kept",
+  "test_leading_and_trailing_separators_are_stripped",
+  "test_lowercases_and_folds_accents",
+  "test_no_alphanumerics_gives_empty_string",
+  "test_result_has_no_leading_or_trailing_sep",
+  "test_result_has_no_repeated_sep",
+  "test_result_only_alphanumerics_and_sep",
+  "test_runs_of_non_alphanumerics_collapse_to_one_separator",
+  "test_task_example"
+ ],
+ "cost_usd": 0.0792
+}

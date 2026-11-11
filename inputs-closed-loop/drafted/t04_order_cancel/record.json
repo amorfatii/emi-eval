@@ -1,0 +1,91 @@
+{
+ "task": "t04_order_cancel",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "What should the history entry for a cancellation look like?",
+   "choices": [
+    "Append \"cancelled\" for every cancel, paid or not",
+    "Append \"cancelled\" and also \"refunded\" when the order was paid",
+    "Append \"refunded\" only for paid orders, and nothing otherwise",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should the existing pay() and ship() error messages change when the order is cancelled?",
+   "choices": [
+    "No, keep the generic \"cannot pay a cancelled order\" messages",
+    "Yes, add a specific cancelled-order message",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should cancel() do for an order whose status is not open, paid, shipped or cancelled, or for a non-Order input?",
+   "choices": [
+    "Raise OrderError for any unknown status",
+    "Don't handle it; let it fail naturally",
+    "Treat it as open and cancel it",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "When cancelling a shipped order raises OrderError, what should the message and the order's state be?",
+   "choices": [
+    "Message \"cannot cancel a shipped order\" in the same style as pay and ship, and the order is unchanged",
+    "Any message, and the order is unchanged",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If a cancelled order is cancelled again, what should happen to refunded?",
+   "choices": [
+    "Leave it as it was, so a refunded order stays refunded=True",
+    "Always leave it unchanged and don't touch any fields",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "What should the history entry for a cancellation look like?",
+   "choice": "Append \"cancelled\" for every cancel, paid or not"
+  },
+  {
+   "q": "Should the existing pay() and ship() error messages change when the order is cancelled?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should cancel() do for an order whose status is not open, paid, shipped or cancelled, or for a non-Order input?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "When cancelling a shipped order raises OrderError, what should the message and the order's state be?",
+   "choice": "Any message, and the order is unchanged"
+  },
+  {
+   "q": "If a cancelled order is cancelled again, what should happen to refunded?",
+   "choice": "Leave it as it was, so a refunded order stays refunded=True"
+  }
+ ],
+ "drafted": "import pytest\nfrom hypothesis import given, strategies as st\n\nfrom orders import Order, OrderError, pay, ship, cancel\n\n\ndef test_cancel_open_order_becomes_cancelled():\n    \"\"\"Cancelling an open order sets its status to 'cancelled' and leaves refunded False.\"\"\"\n    o = cancel(Order(1))\n    assert o.status == \"cancelled\"\n    assert o.refunded is False\n\n\ndef test_cancel_open_order_appends_history():\n    \"\"\"Cancelling an open order appends 'cancelled' to its history.\"\"\"\n    o = cancel(Order(1))\n    assert o.history == [\"cancelled\"]\n\n\ndef test_cancel_paid_order_is_refunded():\n    \"\"\"Cancelling a paid order sets status 'cancelled' and refunded=True.\"\"\"\n    o = cancel(pay(Order(1)))\n    assert o.status == \"cancelled\"\n    assert o.refunded is True\n\n\ndef test_cancel_paid_order_appends_history():\n    \"\"\"Cancelling a paid order appends 'cancelled' to its history after 'paid'.\"\"\"\n    o = cancel(pay(Order(1)))\n    assert o.history == [\"paid\", \"cancelled\"]\n\n\ndef test_cancel_returns_the_same_order():\n    \"\"\"cancel returns the order that was passed in.\"\"\"\n    o = Order(1)\n    assert cancel(o) is o\n    p = pay(Order(2))\n    assert cancel(p) is p\n\n\ndef test_cancel_shipped_order_raises():\n    \"\"\"Cancelling a shipped order raises OrderError.\"\"\"\n    o = ship(pay(Order(1)))\n    with pytest.raises(OrderError):\n        cancel(o)\n\n\ndef test_cancel_shipped_order_leaves_order_unchanged():\n    \"\"\"A failed cancel of a shipped order leaves status, refunded and history unchanged.\"\"\"\n    o = ship(pay(Order(1)))\n    with pytest.raises(OrderError):\n        cancel(o)\n    assert o.status == \"shipped\"\n    assert o.refunded is False\n    assert o.history == [\"paid\", \"shipped\"]\n\n\ndef test_cancel_cancelled_open_order_changes_nothing():\n    \"\"\"Cancelling an already cancelled order adds no second history entry and changes nothing.\"\"\"\n    o = cancel(Order(1))\n    result = cancel(o)\n    assert result is o\n    assert o.status == \"cancelled\"\n    assert o.refunded is False\n    assert o.history == [\"cancelled\"]\n\n\ndef test_cancel_cancelled_refunded_order_stays_refunded():\n    \"\"\"Cancelling again an order cancelled from paid keeps refunded=True and adds no history.\"\"\"\n    o = cancel(pay(Order(1)))\n    result = cancel(o)\n    assert result is o\n    assert o.status == \"cancelled\"\n    assert o.refunded is True\n    assert o.history == [\"paid\", \"cancelled\"]\n\n\ndef test_cancelled_open_order_cannot_be_paid():\n    \"\"\"A cancelled order cannot be paid.\"\"\"\n    o = cancel(Order(1))\n    with pytest.raises(OrderError):\n        pay(o)\n    assert o.status == \"cancelled\"\n    assert o.history == [\"cancelled\"]\n\n\ndef test_cancelled_order_cannot_be_shipped():\n    \"\"\"A cancelled order cannot be shipped.\"\"\"\n    o = cancel(Order(1))\n    with pytest.raises(OrderError):\n        ship(o)\n    assert o.status == \"cancelled\"\n    assert o.history == [\"cancelled\"]\n\n\ndef test_cancelled_paid_order_cannot_be_paid_or_shipped():\n    \"\"\"An order cancelled after payment can be neither paid nor shipped.\"\"\"\n    o = cancel(pay(Order(1)))\n    with pytest.raises(OrderError):\n        pay(o)\n    with pytest.raises(OrderError):\n        ship(o)\n    assert o.status == \"cancelled\"\n    assert o.refunded is True\n    assert o.history == [\"paid\", \"cancelled\"]\n\n\n@given(order_id=st.integers(), paid=st.booleans(), extra_cancels=st.integers(min_value=0, max_value=5))\ndef test_property_repeated_cancel_adds_exactly_one_history_entry(order_id, paid, extra_cancels):\n    \"\"\"However many times an open or paid order is cancelled, 'cancelled' appears in history exactly once and refunded equals whether it was paid.\"\"\"\n    o = Order(order_id)\n    if paid:\n        pay(o)\n    cancel(o)\n    for _ in range(extra_cancels):\n        assert cancel(o) is o\n    assert o.status == \"cancelled\"\n    assert o.refunded is paid\n    assert o.history.count(\"cancelled\") == 1\n    assert o.history == ([\"paid\", \"cancelled\"] if paid else [\"cancelled\"])\n\n\n@given(order_id=st.integers(), paid=st.booleans(), actions=st.lists(st.sampled_from([\"pay\", \"ship\"]), max_size=6))\ndef test_property_cancelled_order_rejects_pay_and_ship(order_id, paid, actions):\n    \"\"\"Once an order is cancelled, any attempt to pay or ship it raises OrderError and changes nothing.\"\"\"\n    o = Order(order_id)\n    if paid:\n        pay(o)\n    cancel(o)\n    before = (o.status, o.refunded, list(o.history))\n    for a in actions:\n        with pytest.raises(OrderError):\n            (pay if a == \"pay\" else ship)(o)\n        assert (o.status, o.refunded, list(o.history)) == before\n\n\n@given(order_id=st.integers(), attempts=st.integers(min_value=1, max_value=4))\ndef test_property_shipped_order_cannot_be_cancelled(order_id, attempts):\n    \"\"\"A shipped order can never be cancelled, and each failed attempt leaves it unchanged.\"\"\"\n    o = ship(pay(Order(order_id)))\n    for _ in range(attempts):\n        with pytest.raises(OrderError):\n            cancel(o)\n        assert o.status == \"shipped\"\n        assert o.refunded is False\n        assert o.history == [\"paid\", \"shipped\"]\n",
+ "rules": "import pytest\nfrom hypothesis import given, strategies as st\nfrom orders import Order, OrderError, pay, ship, cancel\n\ndef test_cancel_open_order_becomes_cancelled():\n    \"\"\"Cancelling an open order sets its status to 'cancelled' and leaves refunded False.\"\"\"\n    o = cancel(Order(1))\n    assert o.status == 'cancelled'\n    assert o.refunded is False\n\ndef test_cancel_open_order_appends_history():\n    \"\"\"Cancelling an open order appends 'cancelled' to its history.\"\"\"\n    o = cancel(Order(1))\n    assert o.history == ['cancelled']\n\ndef test_cancel_paid_order_is_refunded():\n    \"\"\"Cancelling a paid order sets status 'cancelled' and refunded=True.\"\"\"\n    o = cancel(pay(Order(1)))\n    assert o.status == 'cancelled'\n    assert o.refunded is True\n\ndef test_cancel_paid_order_appends_history():\n    \"\"\"Cancelling a paid order appends 'cancelled' to its history after 'paid'.\"\"\"\n    o = cancel(pay(Order(1)))\n    assert o.history == ['paid', 'cancelled']\n\ndef test_cancel_returns_the_same_order():\n    \"\"\"cancel returns the order that was passed in.\"\"\"\n    o = Order(1)\n    assert cancel(o) is o\n    p = pay(Order(2))\n    assert cancel(p) is p\n\ndef test_cancel_shipped_order_raises():\n    \"\"\"Cancelling a shipped order raises OrderError.\"\"\"\n    o = ship(pay(Order(1)))\n    with pytest.raises(OrderError):\n        cancel(o)\n\ndef test_cancel_shipped_order_leaves_order_unchanged():\n    \"\"\"A failed cancel of a shipped order leaves status, refunded and history unchanged.\"\"\"\n    o = ship(pay(Order(1)))\n    with pytest.raises(OrderError):\n        cancel(o)\n    assert o.status == 'shipped'\n    assert o.refunded is False\n    assert o.history == ['paid', 'shipped']\n\ndef test_cancel_cancelled_open_order_changes_nothing():\n    \"\"\"Cancelling an already cancelled order adds no second history entry and changes nothing.\"\"\"\n    o = cancel(Order(1))\n    result = cancel(o)\n    assert result is o\n    assert o.status == 'cancelled'\n    assert o.refunded is False\n    assert o.history == ['cancelled']\n\ndef test_cancel_cancelled_refunded_order_stays_refunded():\n    \"\"\"Cancelling again an order cancelled from paid keeps refunded=True and adds no history.\"\"\"\n    o = cancel(pay(Order(1)))\n    result = cancel(o)\n    assert result is o\n    assert o.status == 'cancelled'\n    assert o.refunded is True\n    assert o.history == ['paid', 'cancelled']\n\ndef test_cancelled_open_order_cannot_be_paid():\n    \"\"\"A cancelled order cannot be paid.\"\"\"\n    o = cancel(Order(1))\n    with pytest.raises(OrderError):\n        pay(o)\n    assert o.status == 'cancelled'\n    assert o.history == ['cancelled']\n\ndef test_cancelled_order_cannot_be_shipped():\n    \"\"\"A cancelled order cannot be shipped.\"\"\"\n    o = cancel(Order(1))\n    with pytest.raises(OrderError):\n        ship(o)\n    assert o.status == 'cancelled'\n    assert o.history == ['cancelled']\n\ndef test_cancelled_paid_order_cannot_be_paid_or_shipped():\n    \"\"\"An order cancelled after payment can be neither paid nor shipped.\"\"\"\n    o = cancel(pay(Order(1)))\n    with pytest.raises(OrderError):\n        pay(o)\n    with pytest.raises(OrderError):\n        ship(o)\n    assert o.status == 'cancelled'\n    assert o.refunded is True\n    assert o.history == ['paid', 'cancelled']\n\n@given(order_id=st.integers(), paid=st.booleans(), extra_cancels=st.integers(min_value=0, max_value=5))\ndef test_property_repeated_cancel_adds_exactly_one_history_entry(order_id, paid, extra_cancels):\n    \"\"\"However many times an open or paid order is cancelled, 'cancelled' appears in history exactly once and refunded equals whether it was paid.\"\"\"\n    o = Order(order_id)\n    if paid:\n        pay(o)\n    cancel(o)\n    for _ in range(extra_cancels):\n        assert cancel(o) is o\n    assert o.status == 'cancelled'\n    assert o.refunded is paid\n    assert o.history.count('cancelled') == 1\n    assert o.history == (['paid', 'cancelled'] if paid else ['cancelled'])\n\n@given(order_id=st.integers(), paid=st.booleans(), actions=st.lists(st.sampled_from(['pay', 'ship']), max_size=6))\ndef test_property_cancelled_order_rejects_pay_and_ship(order_id, paid, actions):\n    \"\"\"Once an order is cancelled, any attempt to pay or ship it raises OrderError and changes nothing.\"\"\"\n    o = Order(order_id)\n    if paid:\n        pay(o)\n    cancel(o)\n    before = (o.status, o.refunded, list(o.history))\n    for a in actions:\n        with pytest.raises(OrderError):\n            (pay if a == 'pay' else ship)(o)\n        assert (o.status, o.refunded, list(o.history)) == before\n\n@given(order_id=st.integers(), attempts=st.integers(min_value=1, max_value=4))\ndef test_property_shipped_order_cannot_be_cancelled(order_id, attempts):\n    \"\"\"A shipped order can never be cancelled, and each failed attempt leaves it unchanged.\"\"\"\n    o = ship(pay(Order(order_id)))\n    for _ in range(attempts):\n        with pytest.raises(OrderError):\n            cancel(o)\n        assert o.status == 'shipped'\n        assert o.refunded is False\n        assert o.history == ['paid', 'shipped']",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_cancel_cancelled_open_order_changes_nothing",
+  "test_cancel_cancelled_refunded_order_stays_refunded",
+  "test_cancel_open_order_appends_history",
+  "test_cancel_open_order_becomes_cancelled",
+  "test_cancel_paid_order_appends_history",
+  "test_cancel_paid_order_is_refunded",
+  "test_cancel_returns_the_same_order",
+  "test_cancel_shipped_order_leaves_order_unchanged",
+  "test_cancel_shipped_order_raises",
+  "test_cancelled_open_order_cannot_be_paid",
+  "test_cancelled_order_cannot_be_shipped",
+  "test_cancelled_paid_order_cannot_be_paid_or_shipped",
+  "test_property_cancelled_order_rejects_pay_and_ship",
+  "test_property_repeated_cancel_adds_exactly_one_history_entry",
+  "test_property_shipped_order_cannot_be_cancelled"
+ ],
+ "cost_usd": 0.0701
+}

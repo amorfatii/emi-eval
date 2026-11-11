@@ -1,32 +1,35 @@
-"""Closed-loop track: a real agent, with and without the EMI hook.
+"""Closed-loop track (trial E): a real agent, four ways.
 
-This is the controlled experiment the EMI README says has not been run.
-It reuses the discrimination tasks (each has a prompt, a baseline project,
-laws and a hidden oracle) and runs Claude Code headless on each:
+Each task is given to the same agent (Claude Code, headless) under four setups:
 
-  arm A  no EMI. A Stop hook only snapshots the tree and lets the agent stop.
-  arm B  `emi hook install --harness claude-code`, plus the same snapshot hook.
+  none      no checker: the agent stops when it thinks it is done.
+  script    the small script: on each stop it puts back the baseline's test
+            files and runner configuration, reruns the tests, and sends the
+            agent back with pytest's own failure lines while they fail.
+  emi       EMI as it is: `emi hook install`, the project's tests, no laws.
+  emi_rules EMI with rules drafted from the task before coding starts
+            (`tracks/draft_rules.py`, committed under inputs-closed-loop/),
+            laid at the baseline as the person's laws.
 
-Every stop attempt is snapshotted, so each of EMI's interventions is labelled
-automatically against the hidden oracle instead of by hand:
+The script and EMI both send the agent back at most 3 times (EMI's default
+repair_rounds); after that the stop is let through and counted as not
+accepted. Every stop attempt is snapshotted and graded by the task's hidden
+checks, so each send-back is labelled automatically: useful (the tree was
+wrong) or wrong (the tree was already right).
 
-  useful   EMI blocked a stop on a tree the oracle says is incorrect
-  wrong    EMI blocked a stop on a tree the oracle says is correct
-  missed   EMI let the agent stop on an incorrect tree
+Per run: did the agent end "done" on wrong work with the setup accepting it,
+did it end correct, how many times it was sent back, turns, tokens, cost,
+wall time. Every run's full transcript is kept, and is searched for any
+read of this lab (where the hidden checks live); a run that touched it is
+flagged.
 
-Per run: final oracle verdict, whether the agent claimed done, number of stop
-attempts and repair rounds, tokens and cost (from Claude Code's JSON output),
-wall time. Pre-registered comparisons (B vs A, paired by task and seed):
+Comparisons (paired by task and run):
+  emi vs script      wrong "done" at least a third less often, solving no
+                     fewer tasks, at most 30% more tokens
+  emi_rules vs emi   do drafted rules help a real agent?
 
-  H1 false completion rate (claimed done, oracle fails) is lower in B
-  H2 solve rate (oracle passes at the end) is not lower in B (margin 5 points)
-  H3 median token overhead of B over A is below 30%
-
-NOT EXECUTED in the session that wrote it: it calls a paid model and needs a
-logged-in `claude` CLI. Run it where that is intended:
-
-  python -m tracks.closed_loop --emi $(which emi) --work W --out OUT \\
-      --seeds 3 --condition laws --max-turns 40
+usage:
+  python -m tracks.closed_loop --emi PATH --work W --out OUT --runs 1 --only t01_slugify ...
 """
 
 from __future__ import annotations
@@ -46,81 +49,206 @@ from emi_evals.model import CONDITIONS  # noqa: E402
 from emi_evals.workspace import Workspace, ensure_venv, git  # noqa: E402
 from suites import DISCRIMINATION  # noqa: E402
 
+LAB = Path(__file__).resolve().parent.parent
+SETUPS = ("none", "script", "emi", "emi_rules")
+ROUNDS = 3
+RULES_FILE = "test_drafted_rules.py"
+TOOLS = "Bash,Edit,Write,Read,Glob,Grep"
+NOTE = ("\n\nThe project's virtualenv is .venv; run its tests with `.venv/bin/python -m pytest`. "
+        "When the task is done, stop.")
+
 SNAPSHOT = r'''#!/usr/bin/env python3
 """Stop hook: copy the tree at this stop attempt, then allow the stop."""
 import json, os, shutil, subprocess, sys, time
 repo = os.getcwd()
-dest = os.path.join(os.environ["EVAL_SNAPSHOTS"], "%03d" % len(os.listdir(os.environ["EVAL_SNAPSHOTS"])))
+snaps = os.environ["EVAL_SNAPSHOTS"]
+dest = os.path.join(snaps, "%03d" % len(os.listdir(snaps)))
 files = subprocess.run(["git", "ls-files", "-co", "--exclude-standard"], cwd=repo,
-                       capture_output=True, text=True).stdout.split()
-for f in files:
-    os.makedirs(os.path.dirname(os.path.join(dest, f)) or dest, exist_ok=True)
-    shutil.copy2(os.path.join(repo, f), os.path.join(dest, f))
+                       capture_output=True, text=True).stdout.split("\n")
+for f in filter(None, files):
+    src = os.path.join(repo, f)
+    if os.path.isfile(src):
+        os.makedirs(os.path.dirname(os.path.join(dest, f)) or dest, exist_ok=True)
+        shutil.copy2(src, os.path.join(dest, f))
+os.makedirs(dest, exist_ok=True)
 with open(os.path.join(dest, ".stop.json"), "w") as fh:
     fh.write(json.dumps({"t": time.time(), "hook_input": sys.stdin.read()[:4000]}))
 sys.exit(0)
 '''
 
+SCRIPT = r'''#!/usr/bin/env python3
+"""Stop hook, the small script: put back the baseline's tests and runner
+configuration, rerun the tests, send the agent back while they fail (at most
+ROUNDS times). Each verdict is appended to EVAL_SCRIPT_LOG."""
+import json, os, shutil, subprocess, sys, tempfile
+RUNNER = {"pytest.ini", "pyproject.toml", "setup.cfg", "tox.ini", "conftest.py", "sitecustomize.py", "usercustomize.py"}
+ROUNDS = %d
+repo = os.getcwd()
+log = os.environ["EVAL_SCRIPT_LOG"]
+past = [json.loads(l) for l in open(log)] if os.path.exists(log) else []
+def is_test(rel):
+    b = os.path.basename(rel)
+    return b.endswith(".py") and (b.startswith("test_") or b.endswith("_test.py") or b == "conftest.py")
+with tempfile.TemporaryDirectory() as tmp:
+    dest = os.path.join(tmp, "tree")
+    shutil.copytree(repo, dest, symlinks=True, ignore=shutil.ignore_patterns(".git", "__pycache__", ".emi", ".venv"))
+    os.symlink(os.path.join(repo, ".venv"), os.path.join(dest, ".venv"))
+    base = set(subprocess.run(["git", "ls-tree", "-r", "--name-only", "main"], cwd=repo,
+                              capture_output=True, text=True).stdout.split("\n")) - {""}
+    for rel in base:
+        if not rel.startswith((".emi/", ".claude/")) and (is_test(rel) or os.path.basename(rel) in RUNNER):
+            blob = subprocess.run(["git", "show", "main:" + rel], cwd=repo, capture_output=True).stdout
+            os.makedirs(os.path.dirname(os.path.join(dest, rel)) or dest, exist_ok=True)
+            open(os.path.join(dest, rel), "wb").write(blob)
+    for root, _, files in os.walk(dest):
+        for f in files:
+            rel = os.path.relpath(os.path.join(root, f), dest)
+            if f in RUNNER and rel not in base and not rel.startswith(".venv"):
+                os.unlink(os.path.join(root, f))
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTEST", "PYTHON"))}
+    env.update({"PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"})
+    out = subprocess.run([os.path.join(dest, ".venv/bin/python"), "-m", "pytest", "-q", "-p", "no:cacheprovider"],
+                         cwd=dest, env=env, capture_output=True, text=True, timeout=600)
+ok = out.returncode == 0
+blocks = sum(1 for p in past if p["blocked"])
+block = not ok and blocks < ROUNDS
+with open(log, "a") as fh:
+    fh.write(json.dumps({"passed": ok, "blocked": block, "exit": out.returncode}) + "\n")
+if block:
+    tail = "\n".join(out.stdout.strip().splitlines()[-25:])
+    print(json.dumps({"decision": "block", "reason": "The tests fail (the original test files, as they were before "
+                      "your change, were run):\n" + tail}))
+sys.exit(0)
+''' % ROUNDS
 
-def settings_with_snapshot(repo: Path, script: Path) -> None:
+
+def hooks_settings(repo: Path, root: Path, setup: str, emi: str, env: dict) -> None:
+    """The setup's Stop hooks, committed at the baseline so they are not part of the change."""
+    if setup in ("emi", "emi_rules"):
+        subprocess.run([emi, "hook", "install", "--harness", "claude-code"], cwd=repo, env=env, check=True,
+                       capture_output=True)
     path = repo / ".claude" / "settings.json"
     data = json.loads(path.read_text()) if path.exists() else {}
     stop = data.setdefault("hooks", {}).setdefault("Stop", [])
-    stop.insert(0, {"hooks": [{"type": "command", "command": f"python3 {script}"}]})
+    snap = root / "snapshot.py"
+    snap.write_text(SNAPSHOT)
+    stop.insert(0, {"hooks": [{"type": "command", "command": f"python3 {snap}"}]})
+    if setup == "script":
+        script = root / "script.py"
+        script.write_text(SCRIPT)
+        stop.append({"hooks": [{"type": "command", "command": f"python3 {script}", "timeout": 600}]})
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2))
+    git(repo, "switch", "-q", "main")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "Agent harness hooks")
+    git(repo, "switch", "-q", "task")
+    git(repo, "reset", "-q", "--hard", "main")
 
 
-def run_one(task, arm: str, seed: int, args) -> dict:
-    cond = CONDITIONS[args.condition]
-    root = args.work / "closed_loop" / f"{task.id}__{arm}__{seed}"
+def read_jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.exists() else []
+
+
+def emi_checks(state: Path) -> list[dict]:
+    rows = []
+    for j in sorted(state.rglob("journal.jsonl")):
+        rows += [r for r in read_jsonl(j) if r.get("kind") == "check"]
+    return rows
+
+
+def transcript_result(lines: list[str]) -> tuple[dict, list[dict]]:
+    events = []
+    for line in lines:
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    result = next((e for e in reversed(events) if e.get("type") == "result"), {})
+    return result, events
+
+
+def touched_lab(events: list[dict]) -> bool:
+    """Whether any tool call names this lab's directory (where the hidden checks live)."""
+    marker = str(LAB)
+    for e in events:
+        if e.get("type") != "assistant":
+            continue
+        for block in (e.get("message") or {}).get("content") or []:
+            if block.get("type") == "tool_use" and marker in json.dumps(block.get("input")):
+                return True
+    return False
+
+
+def run_one(task, setup: str, run: int, args) -> dict:
+    root = args.work / "closed_loop" / f"{task.id}__{setup}__{run}"
     venv = ensure_venv(args.work / "venv", task.pip)
     ws = Workspace(root, args.emi, venv)
-    ws.build(task.files, task.laws if cond.laws else None, cond.config, setup=task.setup)
-    snaps = root / "snapshots"
+    laws = None
+    if setup == "emi_rules":
+        rules = args.drafted / task.id / RULES_FILE
+        if not rules.exists():
+            raise SystemExit(f"{task.id}: no drafted rules; run tracks.draft_rules first")
+        laws = {RULES_FILE: rules.read_text()}
+    ws.build(task.files, laws, CONDITIONS["tests_only"].config, setup=task.setup)
+    snaps, state = root / "snapshots", root / "state"
     snaps.mkdir(parents=True, exist_ok=True)
-    script = root / "snapshot.py"
-    script.write_text(SNAPSHOT)
-    env = {**os.environ, "XDG_STATE_HOME": str(root / "state"), "EVAL_SNAPSHOTS": str(snaps)}
-    if arm == "B":
-        subprocess.run([args.emi, "hook", "install", "--harness", "claude-code"], cwd=ws.repo, env=env, check=True)
-    settings_with_snapshot(ws.repo, script)
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith("EMI_") and k != "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD"}
+    env.update({"XDG_STATE_HOME": str(state), "EVAL_SNAPSHOTS": str(snaps),
+                "EVAL_SCRIPT_LOG": str(root / "script.jsonl"), "EMI_HOOK_WARM": "0"})
+    hooks_settings(ws.repo, root, setup, args.emi, env)
+    cmd = ["claude", "-p", task.prompt + NOTE, "--output-format", "stream-json", "--verbose",
+           "--model", args.model, "--max-turns", str(args.max_turns), "--max-budget-usd", str(args.budget),
+           "--permission-mode", "acceptEdits", "--tools", TOOLS, "--allowedTools", TOOLS,
+           "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
+           "--disable-slash-commands", "--no-chrome", "--no-session-persistence"]
     t0 = time.monotonic()
-    proc = subprocess.run(
-        ["claude", "-p", task.prompt, "--output-format", "json", "--max-turns", str(args.max_turns),
-         "--permission-mode", "acceptEdits", "--allowedTools", "Bash,Edit,Write,Read,Glob,Grep"],
-        cwd=ws.repo, env=env, capture_output=True, text=True, timeout=args.timeout)
-    wall = time.monotonic() - t0
     try:
-        result = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        result = {"raw": proc.stdout[-2000:]}
+        proc = subprocess.run(cmd, cwd=ws.repo, env=env, capture_output=True, text=True, timeout=args.timeout)
+        lines, timed_out = proc.stdout.splitlines(), False
+    except subprocess.TimeoutExpired as e:
+        lines, timed_out = (e.stdout or b"").decode(errors="replace").splitlines(), True
+    wall = time.monotonic() - t0
+    (root / "transcript.jsonl").write_text("\n".join(lines) + "\n")
+    result, events = transcript_result(lines)
     python = venv / "bin" / "python"
-    attempts = []
+    stops = []
     for snap in sorted(p for p in snaps.iterdir() if p.is_dir()):
-        verdict = gates.run_oracle(snap, python, task.oracle, task.python_path)
-        attempts.append({"snapshot": snap.name, "correct": verdict["correct"]})
+        stops.append(gates.run_oracle(snap, python, task.oracle, task.python_path)["correct"])
     final = gates.run_oracle(ws.repo, python, task.oracle, task.python_path)
-    journal = None
-    if arm == "B":
-        j = subprocess.run([args.emi, "journal", "report"], cwd=ws.repo, env=env, capture_output=True, text=True)
-        journal = j.stdout[-4000:]
-    # Stop attempts the hook blocked are followed by another attempt; the last one is allowed.
+    # what the setup's checker said at each stop
+    if setup == "script":
+        verdicts = read_jsonl(root / "script.jsonl")
+        blocked = [v["blocked"] for v in verdicts]
+        accepted = bool(verdicts) and verdicts[-1]["passed"]
+        last_action = "pass" if accepted else ("fail" if verdicts else None)
+    elif setup in ("emi", "emi_rules"):
+        checks = emi_checks(state)
+        blocked = [c.get("reaction") == "block" for c in checks]
+        last_action = checks[-1].get("action") if checks else None
+        accepted = last_action == "stop"
+    else:
+        blocked, last_action = [False] * len(stops), "none"
+        accepted = bool(stops)
+    sent_back = sum(blocked)
     labels = []
-    if arm == "B":
-        for a in attempts[:-1]:
-            labels.append("useful" if not a["correct"] else "wrong")
-        if attempts and not attempts[-1]["correct"]:
-            labels.append("missed")
-    usage = result.get("usage", {}) if isinstance(result, dict) else {}
-    return {"task": task.id, "arm": arm, "seed": seed, "condition": args.condition,
-            "claimed_done": bool(attempts), "final_correct": final["correct"],
-            "false_completion": bool(attempts) and not final["correct"],
-            "stop_attempts": len(attempts), "interventions": labels,
-            "tokens_in": usage.get("input_tokens"), "tokens_out": usage.get("output_tokens"),
-            "cost_usd": result.get("total_cost_usd") if isinstance(result, dict) else None,
-            "num_turns": result.get("num_turns") if isinstance(result, dict) else None,
-            "wall_s": round(wall, 1), "journal": journal}
+    for i, was_blocked in enumerate(blocked):
+        if was_blocked and i < len(stops):
+            labels.append("useful" if not stops[i] else "wrong")
+    usage = result.get("usage") or {}
+    return {"task": task.id, "setup": setup, "run": run, "model": args.model,
+            "models_used": sorted((result.get("modelUsage") or {}).keys()),
+            "final_correct": final["correct"], "oracle_failed": sorted(final["failed"])[:6],
+            "stopped": bool(stops), "accepted": accepted, "last_checker_action": last_action,
+            "wrong_done": accepted and not final["correct"],
+            "sent_back": sent_back, "send_backs": labels, "stop_attempts": len(stops),
+            "stops_correct": stops,
+            "turns": result.get("num_turns"), "cost_usd": result.get("total_cost_usd"),
+            "tokens_in": (usage.get("input_tokens") or 0) + (usage.get("cache_read_input_tokens") or 0)
+                         + (usage.get("cache_creation_input_tokens") or 0),
+            "tokens_out": usage.get("output_tokens"), "terminal": result.get("subtype") or result.get("terminal_reason"),
+            "timed_out": timed_out, "touched_lab": touched_lab(events), "wall_s": round(wall, 1)}
 
 
 def main(argv=None) -> int:
@@ -128,25 +256,32 @@ def main(argv=None) -> int:
     ap.add_argument("--emi", required=True)
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=Path("results-closed-loop"))
-    ap.add_argument("--seeds", type=int, default=3)
-    ap.add_argument("--condition", default="laws", choices=["tests_only", "strict", "laws", "laws_adequacy"])
+    ap.add_argument("--drafted", type=Path, default=Path("inputs-closed-loop/drafted"))
+    ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--setups", nargs="*", default=list(SETUPS), choices=SETUPS)
+    ap.add_argument("--model", default="sonnet")
     ap.add_argument("--max-turns", type=int, default=40)
+    ap.add_argument("--budget", type=float, default=3.0, help="per run, in USD")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--only", nargs="*")
     args = ap.parse_args(argv)
     if not shutil.which("claude"):
         raise SystemExit("needs the `claude` CLI, logged in")
     args.work = args.work.resolve()
+    args.drafted = args.drafted.resolve()
     args.out.mkdir(parents=True, exist_ok=True)
     tasks = [t for t in DISCRIMINATION if t.kind != "refactor" and (not args.only or t.id in args.only)]
-    for seed in range(args.seeds):
+    for run in range(args.runs):
         for task in tasks:
-            for arm in ("A", "B") if seed % 2 == 0 else ("B", "A"):  # alternate order against drift
-                row = run_one(task, arm, seed, args)
+            # rotate the setup order per task and run, against drift in the model service
+            k = (run + tasks.index(task)) % len(args.setups)
+            for setup in args.setups[k:] + args.setups[:k]:
+                row = run_one(task, setup, run, args)
                 with open(args.out / "runs.jsonl", "a") as fh:
-                    fh.write(json.dumps(row) + "\n")
-                print(f"{task.id} arm={arm} seed={seed} final_correct={row['final_correct']} "
-                      f"stops={row['stop_attempts']} interventions={row['interventions']}")
+                    fh.write(json.dumps(row, sort_keys=True) + "\n")
+                print(f"{task.id:<22} {setup:<9} run={run} correct={row['final_correct']!s:<5} "
+                      f"accepted={row['accepted']!s:<5} sent_back={row['sent_back']} ${row['cost_usd']} "
+                      f"{row['wall_s']}s{' LAB' if row['touched_lab'] else ''}", flush=True)
     return 0
 
 
