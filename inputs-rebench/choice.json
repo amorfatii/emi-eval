@@ -1,0 +1,145 @@
+{
+ "Melevir__cognitive_complexity": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "Melevir__cognitive_complexity-15",
+  "tasks_seen": {
+   "Melevir__cognitive_complexity-15": {
+    "in_swe_bench_extra": true,
+    "resolved": 17,
+    "unresolved": 26
+   },
+   "Melevir__cognitive_complexity-17": {
+    "in_swe_bench_extra": true,
+    "resolved": 1,
+    "unresolved": 40
+   },
+   "Melevir__cognitive_complexity-22": {
+    "in_swe_bench_extra": true,
+    "resolved": 0,
+    "unresolved": 45
+   }
+  }
+ },
+ "andialbrecht__sqlparse": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "andialbrecht__sqlparse-231",
+  "tasks_seen": {
+   "andialbrecht__sqlparse-231": {
+    "in_swe_bench_extra": true,
+    "resolved": 9,
+    "unresolved": 33
+   },
+   "andialbrecht__sqlparse-323": {
+    "in_swe_bench_extra": true,
+    "resolved": 9,
+    "unresolved": 4
+   },
+   "andialbrecht__sqlparse-445": {
+    "in_swe_bench_extra": true,
+    "resolved": 1,
+    "unresolved": 53
+   },
+   "andialbrecht__sqlparse-633": {
+    "in_swe_bench_extra": true,
+    "resolved": 4,
+    "unresolved": 42
+   },
+   "andialbrecht__sqlparse-676": {
+    "in_swe_bench_extra": true,
+    "resolved": 0,
+    "unresolved": 15
+   },
+   "andialbrecht__sqlparse-764": {
+    "in_swe_bench_extra": true,
+    "resolved": 31,
+    "unresolved": 0
+   }
+  }
+ },
+ "benmoran56__esper": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "benmoran56__esper-81",
+  "tasks_seen": {
+   "benmoran56__esper-81": {
+    "in_swe_bench_extra": true,
+    "resolved": 2,
+    "unresolved": 46
+   },
+   "benmoran56__esper-83": {
+    "in_swe_bench_extra": true,
+    "resolved": 0,
+    "unresolved": 18
+   }
+  }
+ },
+ "johnsyweb__python_sparse_list": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "johnsyweb__python_sparse_list-17",
+  "tasks_seen": {
+   "johnsyweb__python_sparse_list-14": {
+    "in_swe_bench_extra": true,
+    "resolved": 0,
+    "unresolved": 11
+   },
+   "johnsyweb__python_sparse_list-17": {
+    "in_swe_bench_extra": true,
+    "resolved": 14,
+    "unresolved": 17
+   }
+  }
+ },
+ "konradhalas__dacite": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "konradhalas__dacite-216",
+  "tasks_seen": {
+   "konradhalas__dacite-216": {
+    "in_swe_bench_extra": true,
+    "resolved": 28,
+    "unresolved": 14
+   }
+  }
+ },
+ "package-url__packageurl-python": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "package-url__packageurl-python-29",
+  "tasks_seen": {
+   "package-url__packageurl-python-29": {
+    "in_swe_bench_extra": true,
+    "resolved": 65,
+    "unresolved": 12
+   },
+   "package-url__packageurl-python-44": {
+    "in_swe_bench_extra": true,
+    "resolved": 0,
+    "unresolved": 11
+   }
+  }
+ },
+ "serge-sans-paille__gast": {
+  "rule": "first with at least 2 resolved and 2 unresolved",
+  "task": "serge-sans-paille__gast-50",
+  "tasks_seen": {
+   "serge-sans-paille__gast-50": {
+    "in_swe_bench_extra": true,
+    "resolved": 2,
+    "unresolved": 51
+   },
+   "serge-sans-paille__gast-59": {
+    "in_swe_bench_extra": true,
+    "resolved": 1,
+    "unresolved": 42
+   }
+  }
+ },
+ "tehmaze__ansi": {
+  "rule": "first with at least 1 resolved and 1 unresolved",
+  "task": "tehmaze__ansi-34",
+  "tasks_seen": {
+   "tehmaze__ansi-34": {
+    "in_swe_bench_extra": true,
+    "resolved": 10,
+    "unresolved": 1
+   }
+  }
+ }
+}
