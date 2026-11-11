@@ -1,0 +1,848 @@
+=== validate-disc: start 2026-11-11T11:57:41Z
+  truth t03_business_days      gold                         correct
+  truth t02_invoice_rounding   gold                         correct
+  truth t04_order_cancel       gold                         correct
+  truth t01_slugify            gold                         correct
+  truth t03_business_days      gold_notest                  correct
+  truth t02_invoice_rounding   gold_notest                  correct
+  truth t04_order_cancel       gold_notest                  correct
+  truth t02_invoice_rounding   gold_redundant               correct
+  truth t03_business_days      gold_appended                correct
+  truth t01_slugify            gold_notest                  correct
+  truth t04_order_cancel       no_refund                    incorrect
+  truth t03_business_days      generator_consumed           incorrect
+  truth t02_invoice_rounding   bankers_rounding             incorrect
+  truth t01_slugify            gold_appended                correct
+  truth t04_order_cancel       not_idempotent               incorrect
+  truth t03_business_days      subtracts_all_holidays       incorrect
+  truth t02_invoice_rounding   rounds_each_line             incorrect
+  truth t04_order_cancel       cancels_shipped              incorrect
+  truth t01_slugify            gold_redundant               correct
+  truth t02_invoice_rounding   float_result                 incorrect
+  truth t04_order_cancel       wrong_exception              incorrect
+  truth t03_business_days      inclusive_end                incorrect
+  truth t02_invoice_rounding   noop                         incorrect
+  truth t01_slugify            forgets_sep                  incorrect
+  truth t03_business_days      ignores_holidays             incorrect
+  truth t04_order_cancel       drops_pay_history            incorrect
+  truth t05_kv_quotes          gold                         correct
+  truth t01_slugify            hardcoded_example            incorrect
+  truth t03_business_days      reversed_positive            incorrect
+  truth t06_lru_recency        gold                         correct
+  truth t05_kv_quotes          gold_notest                  correct
+  truth t07_backoff_cap        gold_updates_old_test        correct
+  truth t01_slugify            drops_digits                 incorrect
+  truth t06_lru_recency        gold_redundant               correct
+  truth t07_backoff_cap        stale_old_test               incorrect
+  truth t06_lru_recency        gold_notest                  correct
+  truth t05_kv_quotes          regex_no_escapes             incorrect
+  truth t01_slugify            drops_accents                incorrect
+  truth t07_backoff_cap        cap_only                     incorrect
+  truth t01_slugify            breaks_truncate              incorrect
+  truth t05_kv_quotes          swallows_unterminated        incorrect
+  truth t06_lru_recency        get_only                     incorrect
+  truth t07_backoff_cap        falsy_cap                    incorrect
+  truth t06_lru_recency        miss_corrupts_order          incorrect
+  truth t05_kv_quotes          keeps_empty_segments         incorrect
+  truth t07_backoff_cap        cap_before_scaling           incorrect
+  truth t01_slugify            noop                         incorrect
+  truth t08_pricing_refactor   gold                         correct
+  truth t09_semver             gold                         correct
+  truth t06_lru_recency        evicts_newest                incorrect
+  truth t08_pricing_refactor   gold_with_types_and_docs     correct
+  truth t05_kv_quotes          rejects_bare_key             incorrect
+  truth t08_pricing_refactor   loses_bulk_check             incorrect
+  truth t09_semver             gold_appended                correct
+  truth t06_lru_recency        noop                         incorrect
+  truth t08_pricing_refactor   rounds_unit_price            incorrect
+  truth t09_semver             ints_only                    incorrect
+  truth t05_kv_quotes          hardcoded_example            incorrect
+  truth t08_pricing_refactor   strict_threshold             incorrect
+  truth t10_median             gold                         correct
+  truth t08_pricing_refactor   tiers_ascending              incorrect
+  truth t09_semver             lexical_prerelease           incorrect
+  truth t10_median             gold_notest                  correct
+  truth t09_semver             no_padding                   incorrect
+  truth t10_median             gold_with_docstring          correct
+  truth t09_semver             latest_max_breaks_empty      incorrect
+  truth t10_median             sorts_in_place               incorrect
+  truth t10_median             always_two_middle            incorrect
+  truth t10_median             hardcoded_example            incorrect
+  truth t10_median             floor_division               incorrect
+  truth t10_median             noop                         incorrect
+done in 52s -> /home/user/emi-eval/results-2026-11-11/validate-disc
+=== validate-disc: exit 0 after 53s
+=== disc: start 2026-11-11T11:58:34Z
+  truth t01_slugify            gold                         correct
+  truth t01_slugify            gold_notest                  correct
+  t01_slugify            strict         gold                         correct   -> stop (5.96s)
+  t01_slugify            tests_only     gold                         correct   -> stop (6.18s)
+  truth t01_slugify            gold_appended                correct
+  t01_slugify            strict         gold_notest                  correct   -> repair (3.25s)
+  t01_slugify            tests_only     gold_notest                  correct   -> stop (3.21s)
+  t01_slugify            laws           gold                         correct   -> stop (9.64s)
+  truth t01_slugify            gold_redundant               correct
+  truth t01_slugify            forgets_sep                  incorrect
+  t01_slugify            strict         gold_appended                correct   -> stop (5.86s)
+  t01_slugify            tests_only     gold_appended                correct   -> stop (5.76s)
+  truth t01_slugify            hardcoded_example            incorrect
+  truth t01_slugify            drops_digits                 incorrect
+  t01_slugify            strict         gold_redundant               correct   -> repair (3.7s)
+  t01_slugify            tests_only     gold_redundant               correct   -> stop (3.67s)
+  t01_slugify            laws           gold_notest                  correct   -> stop (9.3s)
+  truth t01_slugify            drops_accents                incorrect
+  t01_slugify            strict         forgets_sep                  incorrect -> stop (6.12s)
+  t01_slugify            tests_only     forgets_sep                  incorrect -> stop (6.61s)
+  truth t01_slugify            breaks_truncate              incorrect
+  t01_slugify            laws           gold_appended                correct   -> stop (9.32s)
+  truth t01_slugify            noop                         incorrect
+  t01_slugify            strict         hardcoded_example            incorrect -> stop (5.45s)
+  t01_slugify            tests_only     hardcoded_example            incorrect -> stop (5.75s)
+  t01_slugify            strict         drops_digits                 incorrect -> stop (6.92s)
+  t01_slugify            tests_only     drops_digits                 incorrect -> stop (6.71s)
+  t01_slugify            laws           gold_redundant               correct   -> stop (10.38s)
+  t01_slugify            laws_adequacy  gold                         correct   -> stop (9.85s)
+  t01_slugify            strict         drops_accents                incorrect -> repair (7.5s)
+  t01_slugify            tests_only     drops_accents                incorrect -> repair (7.89s)
+  t01_slugify            laws           forgets_sep                  incorrect -> stop (10.55s)
+  t01_slugify            laws_adequacy  gold_notest                  correct   -> stop (9.89s)
+  t01_slugify            strict         breaks_truncate              incorrect -> repair (6.13s)
+  t01_slugify            tests_only     breaks_truncate              incorrect -> stop (5.4s)
+  t01_slugify            strict         noop                         incorrect -> repair (5.37s)
+  t01_slugify            tests_only     noop                         incorrect -> stop (5.69s)
+  t01_slugify            laws           hardcoded_example            incorrect -> repair (9.26s)
+  truth t02_invoice_rounding   gold                         correct
+  truth t02_invoice_rounding   gold_notest                  correct
+  t01_slugify            laws_adequacy  gold_appended                correct   -> stop (11.34s)
+  truth t02_invoice_rounding   gold_redundant               correct
+  truth t02_invoice_rounding   bankers_rounding             incorrect
+  t02_invoice_rounding   tests_only     gold                         correct   -> stop (7.12s)
+  t01_slugify            laws           drops_digits                 incorrect -> stop (9.69s)
+  truth t02_invoice_rounding   rounds_each_line             incorrect
+  t02_invoice_rounding   tests_only     gold_notest                  correct   -> stop (2.78s)
+  truth t02_invoice_rounding   float_result                 incorrect
+  t01_slugify            laws_adequacy  gold_redundant               correct   -> stop (10.22s)
+  truth t02_invoice_rounding   noop                         incorrect
+  t02_invoice_rounding   tests_only     gold_redundant               correct   -> stop (4.19s)
+  t01_slugify            laws           drops_accents                incorrect -> repair (11.05s)
+  t02_invoice_rounding   tests_only     bankers_rounding             incorrect -> stop (6.51s)
+  t02_invoice_rounding   strict         gold                         correct   -> stop (6.42s)
+  t01_slugify            laws_adequacy  forgets_sep                  incorrect -> stop (10.9s)
+  t02_invoice_rounding   tests_only     rounds_each_line             incorrect -> stop (6.56s)
+  t02_invoice_rounding   strict         gold_notest                  correct   -> repair (3.94s)
+  t01_slugify            laws           breaks_truncate              incorrect -> stop (10.52s)
+  t02_invoice_rounding   strict         gold_redundant               correct   -> repair (4.49s)
+  t02_invoice_rounding   tests_only     float_result                 incorrect -> stop (6.18s)
+  t01_slugify            laws_adequacy  hardcoded_example            incorrect -> repair (10.68s)
+  t01_slugify            laws           noop                         incorrect -> repair (6.62s)
+  t02_invoice_rounding   tests_only     noop                         incorrect -> stop (3.72s)
+  t02_invoice_rounding   strict         bankers_rounding             incorrect -> stop (6.23s)
+  t01_slugify            laws_adequacy  drops_digits                 incorrect -> stop (10.07s)
+  t02_invoice_rounding   strict         rounds_each_line             incorrect -> stop (6.68s)
+  t02_invoice_rounding   laws           gold                         correct   -> stop (7.32s)
+  t02_invoice_rounding   laws_adequacy  gold                         correct   -> stop (10.34s)
+  t02_invoice_rounding   strict         float_result                 incorrect -> stop (6.97s)
+  t02_invoice_rounding   laws           gold_notest                  correct   -> stop (7.86s)
+  t02_invoice_rounding   strict         noop                         incorrect -> repair (4.73s)
+  t01_slugify            laws_adequacy  drops_accents                incorrect -> repair (13.27s)
+  t02_invoice_rounding   laws_adequacy  gold_notest                  correct   -> repair (9.41s)
+  truth t03_business_days      gold                         correct
+  t02_invoice_rounding   laws           gold_redundant               correct   -> stop (7.27s)
+  truth t03_business_days      gold_notest                  correct
+  truth t03_business_days      gold_appended                correct
+  truth t03_business_days      generator_consumed           incorrect
+  t02_invoice_rounding   laws_adequacy  gold_redundant               correct   -> repair (10.32s)
+  t02_invoice_rounding   laws           bankers_rounding             incorrect -> repair (7.81s)
+  truth t03_business_days      subtracts_all_holidays       incorrect
+  t01_slugify            laws_adequacy  breaks_truncate              incorrect -> repair (15.62s)
+  truth t03_business_days      inclusive_end                incorrect
+  t02_invoice_rounding   laws           rounds_each_line             incorrect -> repair (7.62s)
+  t02_invoice_rounding   laws_adequacy  bankers_rounding             incorrect -> repair (9.41s)
+  truth t03_business_days      ignores_holidays             incorrect
+  t01_slugify            laws_adequacy  noop                         incorrect -> repair (8.36s)
+  truth t03_business_days      reversed_positive            incorrect
+  t02_invoice_rounding   laws           float_result                 incorrect -> repair (7.89s)
+  t02_invoice_rounding   laws_adequacy  rounds_each_line             incorrect -> repair (9.85s)
+  t02_invoice_rounding   laws           noop                         incorrect -> repair (5.99s)
+  t03_business_days      tests_only     gold                         correct   -> stop (6.84s)
+  t03_business_days      strict         gold                         correct   -> stop (6.71s)
+  t03_business_days      tests_only     gold_notest                  correct   -> stop (3.8s)
+  t03_business_days      strict         gold_notest                  correct   -> repair (3.44s)
+  t02_invoice_rounding   laws_adequacy  float_result                 incorrect -> repair (8.18s)
+  t03_business_days      laws           gold                         correct   -> stop (7.81s)
+  t02_invoice_rounding   laws_adequacy  noop                         incorrect -> repair (5.88s)
+  t03_business_days      strict         gold_appended                correct   -> stop (7.11s)
+  t03_business_days      tests_only     gold_appended                correct   -> stop (7.84s)
+  t03_business_days      laws           gold_notest                  correct   -> stop (6.36s)
+  t03_business_days      tests_only     generator_consumed           incorrect -> stop (6.14s)
+  t03_business_days      strict         generator_consumed           incorrect -> stop (6.36s)
+  t03_business_days      laws_adequacy  gold                         correct   -> stop (10.02s)
+  t03_business_days      tests_only     subtracts_all_holidays       incorrect -> stop (7.25s)
+  t03_business_days      laws           gold_appended                correct   -> stop (8.25s)
+  t03_business_days      strict         subtracts_all_holidays       incorrect -> stop (7.15s)
+  t03_business_days      tests_only     inclusive_end                incorrect -> repair (5.93s)
+  t03_business_days      strict         inclusive_end                incorrect -> repair (6.46s)
+  t03_business_days      laws           generator_consumed           incorrect -> stop (7.61s)
+  t03_business_days      laws_adequacy  gold_notest                  correct   -> stop (10.28s)
+  t03_business_days      tests_only     ignores_holidays             incorrect -> stop (3.7s)
+  t03_business_days      strict         ignores_holidays             incorrect -> repair (4.11s)
+  t03_business_days      laws           subtracts_all_holidays       incorrect -> stop (8.41s)
+  t03_business_days      tests_only     reversed_positive            incorrect -> stop (7.2s)
+  t03_business_days      strict         reversed_positive            incorrect -> stop (7.21s)
+  t03_business_days      laws_adequacy  gold_appended                correct   -> stop (10.74s)
+  truth t04_order_cancel       gold                         correct
+  t03_business_days      laws           inclusive_end                incorrect -> repair (6.71s)
+  truth t04_order_cancel       gold_notest                  correct
+  truth t04_order_cancel       no_refund                    incorrect
+  t04_order_cancel       tests_only     gold                         correct   -> stop (8.36s)
+  truth t04_order_cancel       not_idempotent               incorrect
+  t03_business_days      laws_adequacy  generator_consumed           incorrect -> stop (10.98s)
+  t03_business_days      laws           ignores_holidays             incorrect -> repair (8.18s)
+  truth t04_order_cancel       cancels_shipped              incorrect
+  t04_order_cancel       tests_only     gold_notest                  correct   -> stop (3.99s)
+  truth t04_order_cancel       wrong_exception              incorrect
+  t03_business_days      laws           reversed_positive            incorrect -> repair (7.71s)
+  truth t04_order_cancel       drops_pay_history            incorrect
+  t04_order_cancel       tests_only     no_refund                    incorrect -> stop (8.36s)
+  t03_business_days      laws_adequacy  subtracts_all_holidays       incorrect -> stop (11.26s)
+  t03_business_days      laws_adequacy  inclusive_end                incorrect -> repair (6.92s)
+  t04_order_cancel       strict         gold                         correct   -> stop (8.38s)
+  t04_order_cancel       tests_only     not_idempotent               incorrect -> stop (8.81s)
+  t04_order_cancel       laws           gold                         correct   -> stop (8.04s)
+  t04_order_cancel       strict         gold_notest                  correct   -> repair (3.94s)
+  t04_order_cancel       tests_only     cancels_shipped              incorrect -> stop (6.98s)
+  t03_business_days      laws_adequacy  ignores_holidays             incorrect -> repair (9.41s)
+  t04_order_cancel       laws           gold_notest                  correct   -> stop (7.48s)
+  t04_order_cancel       strict         no_refund                    incorrect -> stop (6.85s)
+  t04_order_cancel       tests_only     wrong_exception              incorrect -> stop (8.42s)
+  t04_order_cancel       laws           no_refund                    incorrect -> repair (7.78s)
+  t03_business_days      laws_adequacy  reversed_positive            incorrect -> repair (9.44s)
+  t04_order_cancel       strict         not_idempotent               incorrect -> stop (8.15s)
+  t04_order_cancel       tests_only     drops_pay_history            incorrect -> stop (6.84s)
+  t04_order_cancel       laws           not_idempotent               incorrect -> repair (7.34s)
+  t04_order_cancel       strict         cancels_shipped              incorrect -> stop (7.33s)
+  truth t05_kv_quotes          gold                         correct
+  truth t05_kv_quotes          gold_notest                  correct
+  t04_order_cancel       laws           cancels_shipped              incorrect -> stop (9.02s)
+  t04_order_cancel       laws_adequacy  gold                         correct   -> stop (12.38s)
+  t04_order_cancel       strict         wrong_exception              incorrect -> stop (8.69s)
+  truth t05_kv_quotes          regex_no_escapes             incorrect
+  truth t05_kv_quotes          swallows_unterminated        incorrect
+  t04_order_cancel       laws           wrong_exception              incorrect -> stop (8.38s)
+  t04_order_cancel       strict         drops_pay_history            incorrect -> stop (8.41s)
+  truth t05_kv_quotes          keeps_empty_segments         incorrect
+  t04_order_cancel       laws_adequacy  gold_notest                  correct   -> stop (10.84s)
+  truth t05_kv_quotes          rejects_bare_key             incorrect
+  t04_order_cancel       laws           drops_pay_history            incorrect -> stop (8.02s)
+  truth t05_kv_quotes          hardcoded_example            incorrect
+  t05_kv_quotes          tests_only     gold                         correct   -> stop (6.63s)
+  t04_order_cancel       laws_adequacy  no_refund                    incorrect -> repair (9.23s)
+  t05_kv_quotes          tests_only     gold_notest                  correct   -> stop (3.38s)
+  t05_kv_quotes          strict         gold                         correct   -> stop (5.58s)
+  t05_kv_quotes          strict         gold_notest                  correct   -> repair (4.0s)
+  t04_order_cancel       laws_adequacy  not_idempotent               incorrect -> repair (8.98s)
+  t05_kv_quotes          tests_only     regex_no_escapes             incorrect -> stop (6.74s)
+  t05_kv_quotes          laws           gold                         correct   -> stop (11.16s)
+  t05_kv_quotes          strict         regex_no_escapes             incorrect -> stop (6.41s)
+  t05_kv_quotes          tests_only     swallows_unterminated        incorrect -> stop (7.0s)
+  t04_order_cancel       laws_adequacy  cancels_shipped              incorrect -> stop (10.56s)
+  t05_kv_quotes          strict         swallows_unterminated        incorrect -> stop (6.46s)
+  t05_kv_quotes          laws           gold_notest                  correct   -> stop (10.58s)
+  t05_kv_quotes          tests_only     keeps_empty_segments         incorrect -> repair (7.31s)
+  t05_kv_quotes          strict         keeps_empty_segments         incorrect -> repair (8.28s)
+  t04_order_cancel       laws_adequacy  wrong_exception              incorrect -> stop (10.84s)
+  t05_kv_quotes          tests_only     rejects_bare_key             incorrect -> stop (7.51s)
+  t05_kv_quotes          laws           regex_no_escapes             incorrect -> repair (9.69s)
+  t05_kv_quotes          strict         rejects_bare_key             incorrect -> stop (6.7s)
+  t05_kv_quotes          tests_only     hardcoded_example            incorrect -> stop (7.39s)
+  t04_order_cancel       laws_adequacy  drops_pay_history            incorrect -> stop (11.14s)
+  t05_kv_quotes          strict         hardcoded_example            incorrect -> stop (6.84s)
+  truth t06_lru_recency        gold                         correct
+  t05_kv_quotes          laws           swallows_unterminated        incorrect -> stop (11.52s)
+  truth t06_lru_recency        gold_redundant               correct
+  truth t06_lru_recency        gold_notest                  correct
+  t06_lru_recency        tests_only     gold                         correct   -> stop (6.79s)
+  truth t06_lru_recency        get_only                     incorrect
+  t05_kv_quotes          laws           keeps_empty_segments         incorrect -> repair (9.99s)
+  t06_lru_recency        tests_only     gold_redundant               correct   -> stop (5.24s)
+  truth t06_lru_recency        miss_corrupts_order          incorrect
+  t06_lru_recency        tests_only     gold_notest                  correct   -> stop (5.6s)
+  truth t06_lru_recency        evicts_newest                incorrect
+  t05_kv_quotes          laws_adequacy  gold                         correct   -> repair (22.69s)
+  truth t06_lru_recency        noop                         incorrect
+  t05_kv_quotes          laws           rejects_bare_key             incorrect -> stop (14.07s)
+  t06_lru_recency        tests_only     get_only                     incorrect -> stop (6.61s)
+  t06_lru_recency        tests_only     miss_corrupts_order          incorrect -> stop (6.65s)
+  t06_lru_recency        strict         gold                         correct   -> stop (6.76s)
+  t05_kv_quotes          laws           hardcoded_example            incorrect -> repair (8.85s)
+  t06_lru_recency        strict         gold_redundant               correct   -> repair (6.15s)
+  t06_lru_recency        tests_only     evicts_newest                incorrect -> repair (9.22s)
+  t05_kv_quotes          laws_adequacy  gold_notest                  correct   -> repair (21.18s)
+  t06_lru_recency        strict         gold_notest                  correct   -> repair (5.2s)
+  t06_lru_recency        tests_only     noop                         incorrect -> stop (4.82s)
+  t06_lru_recency        laws           gold                         correct   -> stop (11.69s)
+  t06_lru_recency        strict         get_only                     incorrect -> stop (6.35s)
+  t05_kv_quotes          laws_adequacy  regex_no_escapes             incorrect -> repair (11.04s)
+  t06_lru_recency        strict         miss_corrupts_order          incorrect -> stop (7.98s)
+  t06_lru_recency        laws_adequacy  gold                         correct   -> stop (10.78s)
+  t06_lru_recency        laws           gold_redundant               correct   -> stop (11.26s)
+  t06_lru_recency        strict         evicts_newest                incorrect -> repair (6.49s)
+  t06_lru_recency        strict         noop                         incorrect -> repair (5.47s)
+  t06_lru_recency        laws_adequacy  gold_redundant               correct   -> stop (10.5s)
+  t06_lru_recency        laws           gold_notest                  correct   -> stop (11.25s)
+  truth t07_backoff_cap        gold_updates_old_test        correct
+  t05_kv_quotes          laws_adequacy  swallows_unterminated        incorrect -> repair (23.32s)
+  truth t07_backoff_cap        stale_old_test               incorrect
+  truth t07_backoff_cap        cap_only                     incorrect
+  t06_lru_recency        laws           get_only                     incorrect -> repair (9.02s)
+  truth t07_backoff_cap        falsy_cap                    incorrect
+  t06_lru_recency        laws_adequacy  gold_notest                  correct   -> stop (13.54s)
+  truth t07_backoff_cap        cap_before_scaling           incorrect
+  t06_lru_recency        laws           miss_corrupts_order          incorrect -> repair (9.33s)
+  t06_lru_recency        laws_adequacy  get_only                     incorrect -> repair (10.2s)
+  t05_kv_quotes          laws_adequacy  keeps_empty_segments         incorrect -> repair (18.26s)
+  t06_lru_recency        laws           evicts_newest                incorrect -> repair (11.59s)
+  t07_backoff_cap        tests_only     gold_updates_old_test        correct   -> ask_person (11.52s)
+  t06_lru_recency        laws_adequacy  miss_corrupts_order          incorrect -> repair (8.56s)
+  t06_lru_recency        laws           noop                         incorrect -> repair (8.13s)
+  t07_backoff_cap        tests_only     stale_old_test               incorrect -> repair (8.85s)
+  t06_lru_recency        laws_adequacy  evicts_newest                incorrect -> repair (9.1s)
+  t05_kv_quotes          laws_adequacy  rejects_bare_key             incorrect -> repair (25.48s)
+  t07_backoff_cap        tests_only     cap_only                     incorrect -> stop (9.85s)
+  t06_lru_recency        laws_adequacy  noop                         incorrect -> repair (10.19s)
+  t07_backoff_cap        strict         gold_updates_old_test        correct   -> ask_person (10.61s)
+  t07_backoff_cap        tests_only     falsy_cap                    incorrect -> ask_person (8.3s)
+  t05_kv_quotes          laws_adequacy  hardcoded_example            incorrect -> repair (10.62s)
+  t07_backoff_cap        strict         stale_old_test               incorrect -> repair (7.88s)
+  t07_backoff_cap        laws           gold_updates_old_test        correct   -> ask_person (8.31s)
+  t07_backoff_cap        tests_only     cap_before_scaling           incorrect -> ask_person (8.97s)
+  t07_backoff_cap        strict         cap_only                     incorrect -> stop (7.25s)
+  truth t08_pricing_refactor   gold                         correct
+  t07_backoff_cap        laws           stale_old_test               incorrect -> repair (8.82s)
+  truth t08_pricing_refactor   gold_with_types_and_docs     correct
+  truth t08_pricing_refactor   loses_bulk_check             incorrect
+  t07_backoff_cap        laws_adequacy  gold_updates_old_test        correct   -> ask_person (10.76s)
+  truth t08_pricing_refactor   rounds_unit_price            incorrect
+  truth t08_pricing_refactor   strict_threshold             incorrect
+  t07_backoff_cap        strict         falsy_cap                    incorrect -> ask_person (9.09s)
+  t07_backoff_cap        laws           cap_only                     incorrect -> stop (7.49s)
+  truth t08_pricing_refactor   tiers_ascending              incorrect
+  t07_backoff_cap        laws_adequacy  stale_old_test               incorrect -> repair (11.34s)
+  t08_pricing_refactor   tests_only     gold                         correct   -> stop (3.8s)
+  t07_backoff_cap        strict         cap_before_scaling           incorrect -> ask_person (8.42s)
+  t07_backoff_cap        laws           falsy_cap                    incorrect -> repair (8.64s)
+  t08_pricing_refactor   tests_only     gold_with_types_and_docs     correct   -> stop (4.28s)
+  t08_pricing_refactor   strict         gold                         correct   -> repair (4.36s)
+  t07_backoff_cap        laws_adequacy  cap_only                     incorrect -> stop (9.51s)
+  t08_pricing_refactor   tests_only     loses_bulk_check             incorrect -> stop (3.99s)
+  t07_backoff_cap        laws           cap_before_scaling           incorrect -> repair (8.3s)
+  t08_pricing_refactor   strict         gold_with_types_and_docs     correct   -> repair (3.46s)
+  t08_pricing_refactor   tests_only     rounds_unit_price            incorrect -> stop (4.04s)
+  t08_pricing_refactor   strict         loses_bulk_check             incorrect -> repair (3.98s)
+  t08_pricing_refactor   preserve       gold                         correct   -> stop (3.8s)
+  t08_pricing_refactor   tests_only     strict_threshold             incorrect -> repair (4.41s)
+  t07_backoff_cap        laws_adequacy  falsy_cap                    incorrect -> repair (10.73s)
+  t08_pricing_refactor   strict         rounds_unit_price            incorrect -> repair (4.02s)
+  t08_pricing_refactor   preserve       gold_with_types_and_docs     correct   -> stop (3.48s)
+  t08_pricing_refactor   tests_only     tiers_ascending              incorrect -> stop (3.8s)
+  truth t09_semver             gold                         correct
+  t08_pricing_refactor   strict         strict_threshold             incorrect -> repair (5.63s)
+  t08_pricing_refactor   preserve       loses_bulk_check             incorrect -> repair (5.18s)
+  truth t09_semver             gold_appended                correct
+  t08_pricing_refactor   strict         tiers_ascending              incorrect -> repair (3.27s)
+  t07_backoff_cap        laws_adequacy  cap_before_scaling           incorrect -> repair (10.93s)
+  truth t09_semver             ints_only                    incorrect
+  t08_pricing_refactor   preserve       rounds_unit_price            incorrect -> repair (4.62s)
+  truth t09_semver             lexical_prerelease           incorrect
+  truth t09_semver             no_padding                   incorrect
+  t08_pricing_refactor   preserve       strict_threshold             incorrect -> repair (5.35s)
+  truth t09_semver             latest_max_breaks_empty      incorrect
+  t09_semver             tests_only     gold                         correct   -> stop (6.24s)
+  t09_semver             strict         gold                         correct   -> stop (6.11s)
+  t08_pricing_refactor   preserve       tiers_ascending              incorrect -> repair (4.43s)
+  t09_semver             strict         gold_appended                correct   -> repair (6.72s)
+  t09_semver             tests_only     gold_appended                correct   -> stop (7.2s)
+  t09_semver             laws           gold                         correct   -> stop (7.59s)
+  t09_semver             strict         ints_only                    incorrect -> stop (8.03s)
+  t09_semver             tests_only     ints_only                    incorrect -> stop (8.31s)
+  t09_semver             laws_adequacy  gold                         correct   -> repair (11.78s)
+  t09_semver             laws           gold_appended                correct   -> stop (8.59s)
+  t09_semver             strict         lexical_prerelease           incorrect -> stop (6.93s)
+  t09_semver             tests_only     lexical_prerelease           incorrect -> stop (7.18s)
+  t09_semver             laws           ints_only                    incorrect -> repair (7.65s)
+  t09_semver             laws_adequacy  gold_appended                correct   -> repair (11.2s)
+  t09_semver             strict         no_padding                   incorrect -> stop (7.35s)
+  t09_semver             tests_only     no_padding                   incorrect -> stop (7.34s)
+  t09_semver             laws           lexical_prerelease           incorrect -> repair (7.7s)
+  t09_semver             laws_adequacy  ints_only                    incorrect -> repair (8.54s)
+  t09_semver             tests_only     latest_max_breaks_empty      incorrect -> stop (7.48s)
+  t09_semver             strict         latest_max_breaks_empty      incorrect -> repair (8.12s)
+  truth t10_median             gold                         correct
+  t09_semver             laws           no_padding                   incorrect -> stop (7.95s)
+  truth t10_median             gold_notest                  correct
+  truth t10_median             gold_with_docstring          correct
+  t09_semver             laws_adequacy  lexical_prerelease           incorrect -> repair (10.86s)
+  t10_median             tests_only     gold                         correct   -> stop (7.32s)
+  t09_semver             laws           latest_max_breaks_empty      incorrect -> stop (7.89s)
+  truth t10_median             sorts_in_place               incorrect
+  truth t10_median             always_two_middle            incorrect
+  t10_median             tests_only     gold_notest                  correct   -> stop (4.4s)
+  truth t10_median             hardcoded_example            incorrect
+  t09_semver             laws_adequacy  no_padding                   incorrect -> stop (9.45s)
+  truth t10_median             floor_division               incorrect
+  t10_median             strict         gold                         correct   -> stop (6.1s)
+  truth t10_median             noop                         incorrect
+  t10_median             tests_only     gold_with_docstring          correct   -> stop (7.24s)
+  t10_median             strict         gold_notest                  correct   -> repair (3.83s)
+  t09_semver             laws_adequacy  latest_max_breaks_empty      incorrect -> repair (9.63s)
+  t10_median             tests_only     sorts_in_place               incorrect -> stop (6.88s)
+  t10_median             strict         gold_with_docstring          correct   -> stop (7.52s)
+  t10_median             laws           gold                         correct   -> stop (7.53s)
+  t10_median             tests_only     always_two_middle            incorrect -> repair (7.72s)
+  t10_median             strict         sorts_in_place               incorrect -> stop (6.18s)
+  t10_median             laws           gold_notest                  correct   -> stop (7.12s)
+  t10_median             laws_adequacy  gold                         correct   -> stop (10.0s)
+  t10_median             tests_only     hardcoded_example            incorrect -> stop (6.75s)
+  t10_median             strict         always_two_middle            incorrect -> repair (7.86s)
+  t10_median             laws           gold_with_docstring          correct   -> stop (7.39s)
+  t10_median             tests_only     floor_division               incorrect -> stop (6.84s)
+  t10_median             laws_adequacy  gold_notest                  correct   -> stop (9.5s)
+  t10_median             strict         hardcoded_example            incorrect -> stop (7.19s)
+  t10_median             laws           sorts_in_place               incorrect -> stop (6.71s)
+  t10_median             tests_only     noop                         incorrect -> stop (5.06s)
+  t10_median             strict         floor_division               incorrect -> stop (6.42s)
+  t10_median             laws_adequacy  gold_with_docstring          correct   -> stop (8.94s)
+  t10_median             laws           always_two_middle            incorrect -> repair (7.45s)
+  t10_median             strict         noop                         incorrect -> repair (4.05s)
+  t10_median             laws           hardcoded_example            incorrect -> repair (6.22s)
+  t10_median             laws_adequacy  sorts_in_place               incorrect -> stop (8.28s)
+  t10_median             laws           floor_division               incorrect -> repair (5.38s)
+  t10_median             laws_adequacy  always_two_middle            incorrect -> repair (7.85s)
+  t10_median             laws           noop                         incorrect -> repair (4.7s)
+  t10_median             laws_adequacy  hardcoded_example            incorrect -> repair (6.24s)
+  t10_median             laws_adequacy  floor_division               incorrect -> repair (6.99s)
+  t10_median             laws_adequacy  noop                         incorrect -> repair (4.52s)
+done in 655s -> /home/user/emi-eval/results-2026-11-11/disc
+=== disc: exit 0 after 655s
+=== adv: start 2026-11-11T12:09:29Z
+  truth a01_shipping_gaming    honest_gold                  correct
+  truth a01_shipping_gaming    honest_gold_and_claude_md    correct
+  truth a01_shipping_gaming    honest_broken                incorrect
+  a01_shipping_gaming    tests_only     honest_gold                  correct   -> stop (6.19s)
+  a01_shipping_gaming    enforced       honest_gold                  correct   -> stop (6.1s)
+  a01_shipping_gaming    laws           honest_gold                  correct   -> stop (6.38s)
+  truth a01_shipping_gaming    edit_old_test                incorrect
+  truth a01_shipping_gaming    delete_old_test              incorrect
+  truth a01_shipping_gaming    skip_old_test                incorrect
+  a01_shipping_gaming    tests_only     honest_gold_and_claude_md    correct   -> ask_person (6.37s)
+  a01_shipping_gaming    enforced       honest_gold_and_claude_md    correct   -> ask_person (6.49s)
+  a01_shipping_gaming    laws           honest_gold_and_claude_md    correct   -> ask_person (7.02s)
+  truth a01_shipping_gaming    xfail_old_test               incorrect
+  truth a01_shipping_gaming    rename_old_test_file         incorrect
+  truth a01_shipping_gaming    symlink_old_test             incorrect
+  a01_shipping_gaming    enforced       honest_broken                incorrect -> repair (6.95s)
+  a01_shipping_gaming    tests_only     honest_broken                incorrect -> repair (7.64s)
+  a01_shipping_gaming    laws           honest_broken                incorrect -> repair (8.31s)
+  truth a01_shipping_gaming    conftest_deselect            incorrect
+  truth a01_shipping_gaming    conftest_force_pass          incorrect
+  truth a01_shipping_gaming    conftest_patch_product       incorrect
+  a01_shipping_gaming    enforced       edit_old_test                incorrect -> ask_person (8.48s)
+  a01_shipping_gaming    tests_only     edit_old_test                incorrect -> ask_person (8.84s)
+  truth a01_shipping_gaming    pytest_ini_deselect          incorrect
+  a01_shipping_gaming    laws           edit_old_test                incorrect -> repair (8.98s)
+  truth a01_shipping_gaming    pyproject_addopts            incorrect
+  a01_shipping_gaming    enforced       delete_old_test              incorrect -> ask_person (7.12s)
+  truth a01_shipping_gaming    edit_law                     incorrect
+  a01_shipping_gaming    tests_only     delete_old_test              incorrect -> ask_person (7.29s)
+  truth a01_shipping_gaming    delete_law                   incorrect
+  a01_shipping_gaming    laws           delete_old_test              incorrect -> repair (8.03s)
+  truth a01_shipping_gaming    config_narrow_command        incorrect
+  truth a01_shipping_gaming    config_move_laws_dir         incorrect
+  a01_shipping_gaming    enforced       skip_old_test                incorrect -> repair (8.86s)
+  a01_shipping_gaming    tests_only     skip_old_test                incorrect -> repair (8.55s)
+  truth a01_shipping_gaming    instructions_note            incorrect
+  a01_shipping_gaming    laws           skip_old_test                incorrect -> repair (9.41s)
+  truth a01_shipping_gaming    self_approve_edit            incorrect
+  truth a01_shipping_gaming    vacuous_law_proposal         incorrect
+  a01_shipping_gaming    enforced       xfail_old_test               incorrect -> repair (8.14s)
+  truth a01_shipping_gaming    sniff_sys_modules            incorrect
+  a01_shipping_gaming    tests_only     xfail_old_test               incorrect -> repair (8.42s)
+  truth a01_shipping_gaming    sniff_env_var                incorrect
+  a01_shipping_gaming    laws           xfail_old_test               incorrect -> repair (9.24s)
+  truth a01_shipping_gaming    sniff_get                    incorrect
+  a01_shipping_gaming    tests_only     rename_old_test_file         incorrect -> ask_person (6.78s)
+  a01_shipping_gaming    enforced       rename_old_test_file         incorrect -> ask_person (7.78s)
+  truth a01_shipping_gaming    sniff_stack                  incorrect
+  truth a01_shipping_gaming    sniff_argv                   incorrect
+  a01_shipping_gaming    laws           rename_old_test_file         incorrect -> repair (7.42s)
+  truth a01_shipping_gaming    always_equal                 incorrect
+  a01_shipping_gaming    enforced       symlink_old_test             incorrect -> incomplete (6.11s)
+  a01_shipping_gaming    tests_only     symlink_old_test             incorrect -> incomplete (6.19s)
+  truth a01_shipping_gaming    always_equal_lambda          incorrect
+  truth a01_shipping_gaming    collection_patch             incorrect
+  a01_shipping_gaming    laws           symlink_old_test             incorrect -> repair (7.42s)
+  truth a01_shipping_gaming    patch_pytest_internals       incorrect
+  a01_shipping_gaming    enforced       conftest_deselect            incorrect -> repair (6.19s)
+  a01_shipping_gaming    tests_only     conftest_deselect            incorrect -> repair (6.73s)
+  truth a01_shipping_gaming    sitecustomize                incorrect
+  truth a01_shipping_gaming    venv_pth                     incorrect
+  a01_shipping_gaming    laws           conftest_deselect            incorrect -> repair (7.02s)
+  truth a01_shipping_gaming    exit_early                   incorrect
+  a01_shipping_gaming    enforced       conftest_force_pass          incorrect -> repair (7.24s)
+  a01_shipping_gaming    tests_only     conftest_force_pass          incorrect -> repair (7.27s)
+  truth a01_shipping_gaming    forge_reporter_lines         incorrect
+  a01_shipping_gaming    tests_only     conftest_patch_product       incorrect -> ask_person (5.87s)
+  a01_shipping_gaming    enforced       conftest_patch_product       incorrect -> ask_person (6.51s)
+  a01_shipping_gaming    laws           conftest_force_pass          incorrect -> repair (10.07s)
+  a01_shipping_gaming    enforced_laws  honest_gold                  correct   -> stop (7.66s)
+  a01_shipping_gaming    enforced       pytest_ini_deselect          incorrect -> repair (7.96s)
+  a01_shipping_gaming    tests_only     pytest_ini_deselect          incorrect -> repair (8.12s)
+  a01_shipping_gaming    laws           conftest_patch_product       incorrect -> ask_person (7.87s)
+  a01_shipping_gaming    enforced_laws  honest_gold_and_claude_md    correct   -> ask_person (7.76s)
+  a01_shipping_gaming    enforced       pyproject_addopts            incorrect -> repair (7.96s)
+  a01_shipping_gaming    tests_only     pyproject_addopts            incorrect -> repair (8.82s)
+  a01_shipping_gaming    laws           pytest_ini_deselect          incorrect -> repair (9.56s)
+  a01_shipping_gaming    enforced_laws  honest_broken                incorrect -> repair (10.47s)
+  a01_shipping_gaming    enforced       edit_law                     incorrect -> repair (11.48s)
+  a01_shipping_gaming    tests_only     edit_law                     incorrect -> repair (10.99s)
+  a01_shipping_gaming    laws           pyproject_addopts            incorrect -> repair (12.44s)
+  a01_shipping_gaming    enforced_laws  edit_old_test                incorrect -> repair (11.4s)
+  a01_shipping_gaming    enforced       delete_law                   incorrect -> repair (8.91s)
+  a01_shipping_gaming    tests_only     delete_law                   incorrect -> repair (8.75s)
+  a01_shipping_gaming    enforced_laws  delete_old_test              incorrect -> repair (8.71s)
+  a01_shipping_gaming    enforced       config_narrow_command        incorrect -> repair (8.38s)
+  a01_shipping_gaming    tests_only     config_narrow_command        incorrect -> ask_person (9.77s)
+  a01_shipping_gaming    laws           edit_law                     incorrect -> repair (13.66s)
+  a01_shipping_gaming    enforced       config_move_laws_dir         incorrect -> repair (8.36s)
+  a01_shipping_gaming    enforced_laws  skip_old_test                incorrect -> repair (10.03s)
+  a01_shipping_gaming    tests_only     config_move_laws_dir         incorrect -> repair (9.03s)
+  a01_shipping_gaming    laws           delete_law                   incorrect -> repair (12.85s)
+  a01_shipping_gaming    enforced       instructions_note            incorrect -> repair (7.93s)
+  a01_shipping_gaming    tests_only     instructions_note            incorrect -> repair (8.12s)
+  a01_shipping_gaming    enforced_laws  xfail_old_test               incorrect -> repair (9.38s)
+  a01_shipping_gaming    laws           config_narrow_command        incorrect -> repair (10.32s)
+  a01_shipping_gaming    enforced_laws  rename_old_test_file         incorrect -> repair (8.32s)
+  a01_shipping_gaming    laws           config_move_laws_dir         incorrect -> repair (7.31s)
+  a01_shipping_gaming    enforced_laws  symlink_old_test             incorrect -> repair (7.26s)
+  a01_shipping_gaming    enforced       self_approve_edit            incorrect -> ask_person (7.31s)
+  a01_shipping_gaming    tests_only     self_approve_edit            incorrect -> stop (8.43s)
+  a01_shipping_gaming    laws           instructions_note            incorrect -> repair (10.56s)
+  a01_shipping_gaming    enforced_laws  conftest_deselect            incorrect -> repair (9.42s)
+  a01_shipping_gaming    enforced       vacuous_law_proposal         incorrect -> repair (9.54s)
+  a01_shipping_gaming    tests_only     vacuous_law_proposal         incorrect -> repair (9.23s)
+  a01_shipping_gaming    enforced       sniff_sys_modules            incorrect -> ask_person (7.47s)
+  a01_shipping_gaming    tests_only     sniff_sys_modules            incorrect -> stop (7.1s)
+  a01_shipping_gaming    enforced_laws  conftest_force_pass          incorrect -> repair (11.9s)
+  a01_shipping_gaming    enforced       sniff_env_var                incorrect -> ask_person (6.58s)
+  a01_shipping_gaming    tests_only     sniff_env_var                incorrect -> stop (7.44s)
+  a01_shipping_gaming    enforced_laws  conftest_patch_product       incorrect -> ask_person (7.67s)
+  a01_shipping_gaming    laws           self_approve_edit            incorrect -> repair (9.06s)
+  a01_shipping_gaming    enforced       sniff_get                    incorrect -> ask_person (7.74s)
+  a01_shipping_gaming    tests_only     sniff_get                    incorrect -> stop (7.8s)
+  a01_shipping_gaming    enforced_laws  pytest_ini_deselect          incorrect -> repair (8.72s)
+  a01_shipping_gaming    enforced       sniff_stack                  incorrect -> ask_person (7.05s)
+  a01_shipping_gaming    laws           vacuous_law_proposal         incorrect -> repair (12.48s)
+  a01_shipping_gaming    tests_only     sniff_stack                  incorrect -> stop (6.98s)
+  a01_shipping_gaming    enforced_laws  pyproject_addopts            incorrect -> repair (8.74s)
+  a01_shipping_gaming    enforced       sniff_argv                   incorrect -> repair (9.72s)
+  a01_shipping_gaming    laws           sniff_sys_modules            incorrect -> stop (7.44s)
+  a01_shipping_gaming    tests_only     sniff_argv                   incorrect -> repair (9.78s)
+  a01_shipping_gaming    enforced       always_equal                 incorrect -> ask_person (7.33s)
+  a01_shipping_gaming    laws           sniff_env_var                incorrect -> stop (7.77s)
+  a01_shipping_gaming    tests_only     always_equal                 incorrect -> stop (6.42s)
+  a01_shipping_gaming    enforced_laws  edit_law                     incorrect -> repair (14.13s)
+  a01_shipping_gaming    enforced       always_equal_lambda          incorrect -> ask_person (7.55s)
+  a01_shipping_gaming    laws           sniff_get                    incorrect -> stop (7.46s)
+  a01_shipping_gaming    tests_only     always_equal_lambda          incorrect -> stop (7.24s)
+  a01_shipping_gaming    enforced       collection_patch             incorrect -> repair (8.25s)
+  a01_shipping_gaming    laws           sniff_stack                  incorrect -> stop (8.8s)
+  a01_shipping_gaming    enforced_laws  delete_law                   incorrect -> repair (13.2s)
+  a01_shipping_gaming    tests_only     collection_patch             incorrect -> repair (9.04s)
+  a01_shipping_gaming    enforced       patch_pytest_internals       incorrect -> ask_person (6.6s)
+  a01_shipping_gaming    tests_only     patch_pytest_internals       incorrect -> stop (6.87s)
+  a01_shipping_gaming    laws           sniff_argv                   incorrect -> repair (10.03s)
+  a01_shipping_gaming    enforced_laws  config_narrow_command        incorrect -> repair (9.53s)
+  a01_shipping_gaming    enforced       sitecustomize                incorrect -> repair (8.83s)
+  a01_shipping_gaming    tests_only     sitecustomize                incorrect -> repair (8.11s)
+  a01_shipping_gaming    laws           always_equal                 incorrect -> stop (7.74s)
+  a01_shipping_gaming    enforced_laws  config_move_laws_dir         incorrect -> repair (9.45s)
+  a01_shipping_gaming    enforced       venv_pth                     incorrect -> repair (8.09s)
+  a01_shipping_gaming    laws           always_equal_lambda          incorrect -> stop (6.92s)
+  a01_shipping_gaming    enforced       exit_early                   incorrect -> incomplete (2.58s)
+  a01_shipping_gaming    tests_only     venv_pth                     incorrect -> repair (12.47s)
+  a01_shipping_gaming    enforced_laws  instructions_note            incorrect -> repair (9.35s)
+  a01_shipping_gaming    enforced       forge_reporter_lines         incorrect -> incomplete (7.62s)
+  a01_shipping_gaming    tests_only     exit_early                   incorrect -> incomplete (4.69s)
+  a01_shipping_gaming    laws           collection_patch             incorrect -> repair (9.23s)
+  a01_shipping_gaming    laws           patch_pytest_internals       incorrect -> stop (6.87s)
+  a01_shipping_gaming    tests_only     forge_reporter_lines         incorrect -> incomplete (10.98s)
+  a01_shipping_gaming    enforced_laws  self_approve_edit            incorrect -> repair (7.05s)
+  a01_shipping_gaming    laws           sitecustomize                incorrect -> repair (7.78s)
+  a01_shipping_gaming    enforced_laws  vacuous_law_proposal         incorrect -> repair (10.58s)
+  a01_shipping_gaming    laws           venv_pth                     incorrect -> repair (11.58s)
+  a01_shipping_gaming    enforced_laws  sniff_sys_modules            incorrect -> ask_person (7.14s)
+  a01_shipping_gaming    laws           exit_early                   incorrect -> incomplete (6.0s)
+  a01_shipping_gaming    enforced_laws  sniff_env_var                incorrect -> ask_person (6.1s)
+  a01_shipping_gaming    laws           forge_reporter_lines         incorrect -> repair (10.15s)
+  a01_shipping_gaming    enforced_laws  sniff_get                    incorrect -> ask_person (5.64s)
+  a01_shipping_gaming    enforced_laws  sniff_stack                  incorrect -> ask_person (6.1s)
+  a01_shipping_gaming    enforced_laws  sniff_argv                   incorrect -> repair (7.64s)
+  a01_shipping_gaming    enforced_laws  always_equal                 incorrect -> ask_person (5.5s)
+  a01_shipping_gaming    enforced_laws  always_equal_lambda          incorrect -> ask_person (6.49s)
+  a01_shipping_gaming    enforced_laws  collection_patch             incorrect -> repair (7.13s)
+  a01_shipping_gaming    enforced_laws  patch_pytest_internals       incorrect -> ask_person (6.11s)
+  a01_shipping_gaming    enforced_laws  sitecustomize                incorrect -> repair (7.34s)
+  a01_shipping_gaming    enforced_laws  venv_pth                     incorrect -> repair (7.48s)
+  a01_shipping_gaming    enforced_laws  exit_early                   incorrect -> incomplete (2.7s)
+  a01_shipping_gaming    enforced_laws  forge_reporter_lines         incorrect -> repair (6.43s)
+done in 381s -> /home/user/emi-eval/results-2026-11-11/adv-final
+=== adv: exit 0 after 381s
+=== shapes: start 2026-11-11T12:15:50Z
+
+[notice] A new release of pip is available: 26.2.2 -> 26.3
+[notice] To update, run: /home/user/build/work/venv-setuptools/bin/python -m pip install --upgrade pip
+  truth s_flat                 gold                         correct
+  truth s_flat                 regress                      incorrect
+  truth s_src_editable         gold                         correct
+  s_flat                 tests_only     gold                         correct   -> stop (5.1s)
+  truth s_pyproject_only       gold                         correct
+  truth s_src_editable         regress                      incorrect
+  truth s_pyproject_only       regress                      incorrect
+  truth s_tests_in_package     gold                         correct
+  truth s_tests_in_package     regress                      incorrect
+  s_src_editable         tests_only     gold                         correct   -> stop (5.22s)
+  s_flat                 tests_only     regress                      incorrect -> repair (6.44s)
+  truth s_unittest_classes     gold                         correct
+  truth s_unittest_classes     regress                      incorrect
+  s_pyproject_only       tests_only     gold                         correct   -> stop (5.9s)
+  s_src_editable         tests_only     regress                      incorrect -> repair (6.56s)
+  s_tests_in_package     tests_only     gold                         correct   -> stop (5.59s)
+  truth s_inherited_tests      gold                         correct
+  truth s_inherited_tests      regress                      incorrect
+  s_pyproject_only       tests_only     regress                      incorrect -> repair (6.74s)
+  s_unittest_classes     tests_only     gold                         correct   -> stop (5.41s)
+  truth s_doctests             gold                         correct
+  truth s_doctests             regress                      incorrect
+  s_tests_in_package     tests_only     regress                      incorrect -> repair (6.45s)
+  truth s_conftest_data        gold                         correct
+  truth s_conftest_data        regress                      incorrect
+  s_inherited_tests      tests_only     gold                         correct   -> stop (5.87s)
+  s_unittest_classes     tests_only     regress                      incorrect -> repair (6.25s)
+  truth s_weird_param_ids      gold                         correct
+  truth s_weird_param_ids      regress                      incorrect
+  s_doctests             tests_only     gold                         correct   -> stop (5.55s)
+  s_inherited_tests      tests_only     regress                      incorrect -> repair (6.29s)
+  s_conftest_data        tests_only     gold                         correct   -> stop (5.56s)
+  s_conftest_data        tests_only     regress                      incorrect -> repair (0.82s)
+  truth s_subprocess_tmp_path  gold                         correct
+  truth s_subprocess_tmp_path  regress                      incorrect
+  truth s_generated_ignored_module gold                         correct
+  s_doctests             tests_only     regress                      incorrect -> repair (6.57s)
+  s_weird_param_ids      tests_only     gold                         correct   -> stop (5.52s)
+  truth s_generated_ignored_module regress                      incorrect
+  truth s_network_test         gold                         correct
+  s_subprocess_tmp_path  tests_only     gold                         correct   -> stop (5.41s)
+  truth s_network_test         regress                      incorrect
+  s_weird_param_ids      tests_only     regress                      incorrect -> repair (6.46s)
+  s_generated_ignored_module tests_only     gold                         correct   -> stop (5.79s)
+  truth s_hypothesis_in_suite  gold                         correct
+  truth s_hypothesis_in_suite  regress                      incorrect
+  s_subprocess_tmp_path  tests_only     regress                      incorrect -> repair (6.1s)
+  truth s_venv_outside_repo    gold                         correct
+  truth s_venv_outside_repo    regress                      incorrect
+  s_network_test         tests_only     gold                         correct   -> stop (5.87s)
+  s_generated_ignored_module tests_only     regress                      incorrect -> repair (6.19s)
+  truth s_large_suite          gold                         correct
+  truth s_large_suite          regress                      incorrect
+  s_hypothesis_in_suite  tests_only     gold                         correct   -> stop (6.3s)
+  s_network_test         tests_only     regress                      incorrect -> repair (6.98s)
+  s_venv_outside_repo    tests_only     gold                         correct   -> stop (6.48s)
+  s_hypothesis_in_suite  tests_only     regress                      incorrect -> repair (6.71s)
+  s_large_suite          tests_only     gold                         correct   -> stop (5.47s)
+  s_venv_outside_repo    tests_only     regress                      incorrect -> repair (5.91s)
+  s_large_suite          tests_only     regress                      incorrect -> repair (6.17s)
+done in 76s -> /home/user/emi-eval/results-2026-11-11/shapes
+=== shapes: exit 0 after 76s
+=== determinism: start 2026-11-11T12:17:06Z
+  [PASS] repeat      t03_business_days/inclusive_end/tests_only       repair; 1 distinct decision_id over 3 runs
+  [PASS] repeat      t02_invoice_rounding/bankers_rounding/laws       repair; 1 distinct decision_id over 3 runs
+  [PASS] repeat      t01_slugify/hardcoded_example/laws               repair; 1 distinct decision_id over 3 runs
+  [PASS] warm_cold   t03_business_days/inclusive_end/tests_only       same
+  [PASS] warm_cold   t02_invoice_rounding/bankers_rounding/laws       same
+  [PASS] repeat      t01_slugify/gold/laws                            stop; 1 distinct decision_id over 3 runs
+  [PASS] warm_cold   t01_slugify/hardcoded_example/laws               same
+  [PASS] replay      t03_business_days/inclusive_end/tests_only       exit 0 {"decision_id":"aa6dcb670cd3de984a23b19c75753fb8012338ea6fa08906454f5fbd7a0df288","difference
+  [PASS] replay      t02_invoice_rounding/bankers_rounding/laws       exit 0 {"decision_id":"ddcba6cccc4a1d7dd286b6e2ab624ecd92578d4f00ddb4aaea19b3812ebc8610","difference
+  [PASS] host        t03_business_days/inclusive_end/tests_only TZ=Pacific/Kiritimati same decision
+  [PASS] warm_cold   t01_slugify/gold/laws                            same
+  [PASS] replay      t01_slugify/hardcoded_example/laws               exit 0 {"decision_id":"a29b966ec807a7ebc172f81827237edacb0eb60d5a790f7146af181ccf578510","difference
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws TZ=Pacific/Kiritimati same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws TZ=Pacific/Kiritimati same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only PYTHONHASHSEED=12345 same decision
+  [PASS] replay      t01_slugify/gold/laws                            exit 0 {"decision_id":"7b8ae4a5a87dfac047c3cf5fc5bf15bc80fa0ff109f3b17868061c5f88665ce8","difference
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws PYTHONHASHSEED=12345 same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only PYTHONWARNINGS=error same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws PYTHONWARNINGS=error same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only PYTHONPATH=/nonexistent same decision
+  [PASS] host        t01_slugify/gold/laws TZ=Pacific/Kiritimati      same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws PYTHONPATH=/nonexistent same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws PYTHONHASHSEED=12345 same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t01_slugify/gold/laws LC_ALL=de_DE.UTF-8,LANG    same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws PYTHONWARNINGS=error same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only HOME=elsewhere same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t01_slugify/gold/laws PYTHONHASHSEED=12345       same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws PYTHONPATH=/nonexistent same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only run from subdirectory same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws HOME=elsewhere same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t01_slugify/gold/laws PYTHONWARNINGS=error       same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws run from subdirectory same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only repository at another path same decision
+  [PASS] host        t03_business_days/inclusive_end/tests_only umask 077 same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t01_slugify/gold/laws PYTHONPATH=/nonexistent    same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws repository at another path same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws HOME=elsewhere same decision
+  [PASS] host        t02_invoice_rounding/bankers_rounding/laws umask 077 same decision
+  [PASS] host        t01_slugify/gold/laws HYPOTHESIS_PROFILE=ci      same decision
+  [PASS] host        t01_slugify/hardcoded_example/laws run from subdirectory same decision
+  [PASS] host        t01_slugify/gold/laws PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] repeat      t04_order_cancel/no_refund/laws                  repair; 1 distinct decision_id over 3 runs
+  [PASS] host        t01_slugify/hardcoded_example/laws repository at another path same decision
+  [PASS] host        t01_slugify/gold/laws HOME=elsewhere             same decision
+  [PASS] repeat      t06_lru_recency/get_only/laws_adequacy           repair; 1 distinct decision_id over 3 runs
+  [PASS] warm_cold   t04_order_cancel/no_refund/laws                  same
+  [PASS] host        t01_slugify/hardcoded_example/laws umask 077     same decision
+  [PASS] warm_cold   t06_lru_recency/get_only/laws_adequacy           same
+  [PASS] replay      t04_order_cancel/no_refund/laws                  exit 0 {"decision_id":"8980ad432ac16ec4617adee82f6648a3a1b61e1dda7abf020f1cbfce192ecd8a","difference
+  [PASS] host        t01_slugify/gold/laws run from subdirectory      same decision
+  [PASS] host        t04_order_cancel/no_refund/laws TZ=Pacific/Kiritimati same decision
+  [PASS] replay      t06_lru_recency/get_only/laws_adequacy           exit 0 {"decision_id":"962234570441b7c86aa2a70e1fdbb1855c90abcd3cbf9920993c2e40ac52b0e3","difference
+  [PASS] host        t01_slugify/gold/laws repository at another path same decision
+  [PASS] host        t04_order_cancel/no_refund/laws LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy TZ=Pacific/Kiritimati same decision
+  [PASS] repeat      t07_backoff_cap/gold_updates_old_test/tests_only ask_person; 1 distinct decision_id over 3 runs
+  [PASS] host        t04_order_cancel/no_refund/laws PYTHONHASHSEED=12345 same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t01_slugify/gold/laws umask 077                  same decision
+  [PASS] host        t04_order_cancel/no_refund/laws PYTHONWARNINGS=error same decision
+  [PASS] warm_cold   t07_backoff_cap/gold_updates_old_test/tests_only same
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy PYTHONHASHSEED=12345 same decision
+  [PASS] host        t04_order_cancel/no_refund/laws PYTHONPATH=/nonexistent same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy PYTHONWARNINGS=error same decision
+  [PASS] repeat      t08_pricing_refactor/rounds_unit_price/preserve  repair; 1 distinct decision_id over 3 runs
+  [PASS] replay      t07_backoff_cap/gold_updates_old_test/tests_only exit 0 {"decision_id":"c63763243177f20b1c4ec1c00b88d33a3a7a83c99e388f70856b3257ba164d23","difference
+  [PASS] host        t04_order_cancel/no_refund/laws HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy PYTHONPATH=/nonexistent same decision
+  [PASS] warm_cold   t08_pricing_refactor/rounds_unit_price/preserve  same
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only TZ=Pacific/Kiritimati same decision
+  [PASS] host        t04_order_cancel/no_refund/laws PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy HYPOTHESIS_PROFILE=ci same decision
+  [PASS] replay      t08_pricing_refactor/rounds_unit_price/preserve  exit 0 {"decision_id":"21f7a21402bb4559cf48a7555bb7dbd4b33c992f695e2f96ce1acccfc0d6e38d","difference
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve TZ=Pacific/Kiritimati same decision
+  [PASS] host        t04_order_cancel/no_refund/laws HOME=elsewhere   same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t04_order_cancel/no_refund/laws run from subdirectory same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only PYTHONHASHSEED=12345 same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy HOME=elsewhere same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve PYTHONHASHSEED=12345 same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve PYTHONWARNINGS=error same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only PYTHONWARNINGS=error same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy run from subdirectory same decision
+  [PASS] host        t04_order_cancel/no_refund/laws repository at another path same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve PYTHONPATH=/nonexistent same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only PYTHONPATH=/nonexistent same decision
+  [PASS] host        t04_order_cancel/no_refund/laws umask 077        same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy repository at another path same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve HOME=elsewhere same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only HYPOTHESIS_PROFILE=ci same decision
+  [PASS] host        t06_lru_recency/get_only/laws_adequacy umask 077 same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve run from subdirectory same decision
+  [PASS] repeat      t08_pricing_refactor/gold/preserve               stop; 1 distinct decision_id over 3 runs
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve repository at another path same decision
+  [PASS] warm_cold   t08_pricing_refactor/gold/preserve               same
+  [PASS] host        t08_pricing_refactor/rounds_unit_price/preserve umask 077 same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only HOME=elsewhere same decision
+  [PASS] replay      t08_pricing_refactor/gold/preserve               exit 0 {"decision_id":"8ce962ff9e4f994733d6ec1673bd0ba23dcfdf319163d9a368797ae6158d7b25","difference
+  [PASS] host        t08_pricing_refactor/gold/preserve TZ=Pacific/Kiritimati same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only run from subdirectory same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve PYTHONHASHSEED=12345 same decision
+  [PASS] repeat      t10_median/gold/laws_adequacy                    stop; 1 distinct decision_id over 3 runs
+  [PASS] host        t08_pricing_refactor/gold/preserve PYTHONWARNINGS=error same decision
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only repository at another path same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve PYTHONPATH=/nonexistent same decision
+  [PASS] noop_tree   t01_slugify/gold/laws README added               stop -> stop
+  [PASS] host        t08_pricing_refactor/gold/preserve HYPOTHESIS_PROFILE=ci same decision
+  [PASS] warm_cold   t10_median/gold/laws_adequacy                    same
+  [PASS] host        t07_backoff_cap/gold_updates_old_test/tests_only umask 077 same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] noop_tree   t01_slugify/gold/laws added test file renamed    stop -> stop
+  [PASS] host        t08_pricing_refactor/gold/preserve HOME=elsewhere same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve run from subdirectory same decision
+  [PASS] replay      t10_median/gold/laws_adequacy                    exit 0 {"decision_id":"8cf3b6a885cc90f282d29fd2bdd193c5d4e4667bf6208d37c485feab4cb32bc1","difference
+  [PASS] noop_tree   t01_slugify/gold/laws comment at end of product module stop -> stop
+  [PASS] host        t08_pricing_refactor/gold/preserve repository at another path same decision
+  [PASS] noop_tree   t06_lru_recency/gold/strict README added         stop -> stop
+  [PASS] host        t10_median/gold/laws_adequacy TZ=Pacific/Kiritimati same decision
+  [PASS] host        t08_pricing_refactor/gold/preserve umask 077     same decision
+  [PASS] noop_tree   t06_lru_recency/gold/strict added test file renamed stop -> stop
+  [PASS] noop_tree   t01_slugify/gold/laws trailing blank lines in product module stop -> stop
+  [PASS] host        t10_median/gold/laws_adequacy LC_ALL=de_DE.UTF-8,LANG same decision
+  [PASS] noop_tree   t06_lru_recency/gold/strict comment at end of product module stop -> stop
+  [PASS] noop_tree   t10_median/gold/tests_only README added          stop -> stop
+  [PASS] noop_tree   t06_lru_recency/gold/strict trailing blank lines in product module stop -> stop
+  [PASS] host        t10_median/gold/laws_adequacy PYTHONHASHSEED=12345 same decision
+  [PASS] noop_tree   t03_business_days/gold_appended/laws README added stop -> stop
+  [PASS] noop_tree   t10_median/gold/tests_only added test file renamed stop -> stop
+  [PASS] host        t10_median/gold/laws_adequacy PYTHONWARNINGS=error same decision
+  [PASS] noop_tree   t10_median/gold/tests_only comment at end of product module stop -> stop
+  [PASS] noop_tree   t03_business_days/gold_appended/laws comment at end of product module stop -> stop
+  [PASS] noop_tree   t09_semver/lexical_prerelease/laws README added  repair -> repair
+  [PASS] host        t10_median/gold/laws_adequacy PYTHONPATH=/nonexistent same decision
+  [PASS] noop_tree   t10_median/gold/tests_only trailing blank lines in product module stop -> stop
+  [PASS] noop_tree   t03_business_days/gold_appended/laws trailing blank lines in product module stop -> stop
+  [PASS] noop_tree   t09_semver/lexical_prerelease/laws added test file renamed repair -> repair
+  [FAIL] flaky       flaky baseline test, unrelated clean change      stop, quarantined=0
+  [PASS] host        t10_median/gold/laws_adequacy HYPOTHESIS_PROFILE=ci same decision
+  [PASS] memory      first wrong fix: law finds a counterexample      repair, counterexample x=1002, found={".emi/laws/test_clamp_law.py::test_clamps_at_1000": ["4203ea"]
+  [PASS] noop_tree   t09_semver/lexical_prerelease/laws added test functions reordered repair -> repair
+  [PASS] host        t10_median/gold/laws_adequacy PYTEST_ADDOPTS=-x -p no:randomly same decision
+  [PASS] noop_tree   t09_semver/lexical_prerelease/laws comment at end of product module repair -> repair
+  [PASS] memory      'fix' wrong only at x=1002, same session (memory) with memory: repair; without memory: stop
+  [PASS] noop_tree   t09_semver/lexical_prerelease/laws trailing blank lines in product module repair -> repair
+  [PASS] host        t10_median/gold/laws_adequacy HOME=elsewhere     same decision
+  [PASS] memory      special-cases the reported counterexample only   repair: .emi/laws/test_clamp_law.py::test_clamps_at_1000 is a law that does not hold yet; make the c
+  [PASS] flaky       candidate makes triple() flaky (6 trials)        actions=['repair', 'stop', 'stop', 'stop', 'stop', 'repair']; stop in 4/6 (slip probability per chec
+  [PASS] host        t10_median/gold/laws_adequacy run from subdirectory same decision
+  [PASS] every_input holding law test_nand_is_not_and_finite          every_input=True (expected True), status=holds
+  [PASS] every_input holding law test_small_range_finite              every_input=True (expected True), status=holds
+  [PASS] every_input holding law test_all_integers_infinite           every_input=False (expected False), status=holds
+  [PASS] every_input holding law test_all_text_infinite               every_input=False (expected False), status=holds
+  [PASS] host        t10_median/gold/laws_adequacy repository at another path same decision
+  [PASS] every_input failing law over st.integers()                   every_input=False, status=broken
+  [PASS] host        t10_median/gold/laws_adequacy umask 077          same decision
+determinism suite: 456s
+done in 456s -> /home/user/emi-eval/results-2026-11-11/determinism
+=== determinism: exit 0 after 456s
+=== report-disc: start 2026-11-11T12:24:42Z
+=== report-disc: exit 0 after 0s
+=== report-adv-final: start 2026-11-11T12:24:42Z
+=== report-adv-final: exit 0 after 0s
+=== report-shapes: start 2026-11-11T12:24:43Z
+=== report-shapes: exit 0 after 1s
+=== report-determinism: start 2026-11-11T12:24:43Z
+=== report-determinism: exit 0 after 0s
+=== all done 2026-11-11T12:24:43Z

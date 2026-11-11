@@ -1,0 +1,399 @@
+{
+ "adversarial": null,
+ "determinism": null,
+ "discrimination": null,
+ "shapes": {
+  "rows": [
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.56,
+    "shape": "s_conftest_data",
+    "warm_seconds": 2.46
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "Regression broken: the tests ran at the baseline (4 passed) and do not start on the candidate: E ImportError: cannot import name 'rates' from 'core' core.py)",
+    "seconds": 0.82,
+    "shape": "s_conftest_data",
+    "warm_seconds": 2.46
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.55,
+    "shape": "s_doctests",
+    "warm_seconds": 2.4
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "core.py::core.gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.57,
+    "shape": "s_doctests",
+    "warm_seconds": 2.4
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.1,
+    "shape": "s_flat",
+    "warm_seconds": 2.25
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.44,
+    "shape": "s_flat",
+    "warm_seconds": 2.25
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.79,
+    "shape": "s_generated_ignored_module",
+    "warm_seconds": 2.48
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.19,
+    "shape": "s_generated_ignored_module",
+    "warm_seconds": 2.48
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 6.3,
+    "shape": "s_hypothesis_in_suite",
+    "warm_seconds": 2.71
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.71,
+    "shape": "s_hypothesis_in_suite",
+    "warm_seconds": 2.71
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.87,
+    "shape": "s_inherited_tests",
+    "warm_seconds": 2.25
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::TestReduced::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.29,
+    "shape": "s_inherited_tests",
+    "warm_seconds": 2.25
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.47,
+    "shape": "s_large_suite",
+    "warm_seconds": 3.13
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.17,
+    "shape": "s_large_suite",
+    "warm_seconds": 3.13
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.87,
+    "shape": "s_network_test",
+    "warm_seconds": 2.59
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.98,
+    "shape": "s_network_test",
+    "warm_seconds": 2.59
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.9,
+    "shape": "s_pyproject_only",
+    "warm_seconds": 2.44
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.74,
+    "shape": "s_pyproject_only",
+    "warm_seconds": 2.44
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.22,
+    "shape": "s_src_editable",
+    "warm_seconds": 2.44
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.56,
+    "shape": "s_src_editable",
+    "warm_seconds": 2.44
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.41,
+    "shape": "s_subprocess_tmp_path",
+    "warm_seconds": 2.56
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_cli fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.1,
+    "shape": "s_subprocess_tmp_path",
+    "warm_seconds": 2.56
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.59,
+    "shape": "s_tests_in_package",
+    "warm_seconds": 2.36
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "app/tests/core_test.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.45,
+    "shape": "s_tests_in_package",
+    "warm_seconds": 2.36
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.41,
+    "shape": "s_unittest_classes",
+    "warm_seconds": 2.66
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "test/test_core.py::TaxTest::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.25,
+    "shape": "s_unittest_classes",
+    "warm_seconds": 2.66
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 6.48,
+    "shape": "s_venv_outside_repo",
+    "warm_seconds": 2.45
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 5.91,
+    "shape": "s_venv_outside_repo",
+    "warm_seconds": 2.45
+   },
+   {
+    "action": "stop",
+    "candidate": "gold",
+    "env_identified": true,
+    "expected": [
+     "stop"
+    ],
+    "ok": true,
+    "reason": "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "seconds": 5.52,
+    "shape": "s_weird_param_ids",
+    "warm_seconds": 2.4
+   },
+   {
+    "action": "repair",
+    "candidate": "regress",
+    "env_identified": true,
+    "expected": [
+     "repair"
+    ],
+    "ok": true,
+    "reason": "tests/test_core.py::test_gross fails; fix the code (an edited or deleted test is run in its original form).",
+    "seconds": 6.46,
+    "shape": "s_weird_param_ids",
+    "warm_seconds": 2.4
+   }
+  ]
+ }
+}
