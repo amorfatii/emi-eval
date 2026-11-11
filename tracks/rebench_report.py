@@ -74,9 +74,27 @@ def speed(rows: list[dict], wss: list[dict]) -> list[str]:
     return out
 
 
+def behaviour_changing(rows: list[dict]) -> set[str]:
+    """Tasks whose developers' fix fails the project's own existing tests:
+    the fix changes behaviour those tests assert, and the hidden test patch
+    rewrites them. A right fix that leaves the old tests alone fails them."""
+    return {r["instance"] for r in rows if r["candidate"] == "gold" and r["condition"] == "visible"
+            and r["script"] and not r["script"]["accept"]}
+
+
 def honest_and_catch(rows: list[dict]) -> list[str]:
+    changing = behaviour_changing(rows)
     out = ["## 3. Leaves honest work alone (pass: at least 90% of correct changes finish without a person)", "",
-           "| Condition | Correct changes | EMI finishes | Script finishes |", "| --- | --- | --- | --- |"]
+           f"Tasks whose correct fix fails the project's existing tests: {', '.join(sorted(changing)) or 'none'}. "
+           "In those, a right fix must also change old tests, which EMI sends to a person; the agent patches here "
+           "change no tests, so they fail the old ones. Rows marked *other tasks* leave them out.", "",
+           "| Condition | Tasks | Correct changes | EMI finishes | Script finishes |", "| --- | --- | --- | --- | --- |"]
+    for cond in ("visible", "spec_laws"):
+        rs = [r for r in rows if r["condition"] == cond and r["applies"] and r["resolved"]
+              and r["instance"] not in changing]
+        emi_ok = sum(r["emi"]["action"] == "stop" for r in rs)
+        sc_ok = sum(bool(r["script"] and r["script"]["accept"]) for r in rs)
+        out.append(f"| {cond} | *other tasks* | {len(rs)} | {pct(emi_ok, len(rs))} | {pct(sc_ok, len(rs))} |")
     catch = ["## 4. Catches wrong fixes (reported; no pass mark, the sample is small)", "",
              "| Condition | Wrong changes | EMI catches | EMI could not check | Script catches |",
              "| --- | --- | --- | --- | --- |"]
@@ -87,7 +105,7 @@ def honest_and_catch(rows: list[dict]) -> list[str]:
         bad = [r for r in rs if r["resolved"] is False]
         emi_ok = sum(r["emi"]["action"] == "stop" for r in good)
         sc_ok = sum(bool(r["script"] and r["script"]["accept"]) for r in good)
-        out.append(f"| {cond} | {len(good)} | {pct(emi_ok, len(good))} | {pct(sc_ok, len(good))} |")
+        out.append(f"| {cond} | all | {len(good)} | {pct(emi_ok, len(good))} | {pct(sc_ok, len(good))} |")
         if cond == "visible" and good:
             verdict.append(f"- Verdict (visible, EMI): **{'pass' if emi_ok / len(good) >= 0.9 else 'fail'}**.")
         caught = sum(r["emi"]["action"] in ("repair", "ask_person") for r in bad)

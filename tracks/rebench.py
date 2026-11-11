@@ -231,8 +231,9 @@ def script_check(repo: Path, command: list[str], laws_command: list[str] | None)
 
 
 class Instance:
-    def __init__(self, work: Path, task: dict, attempts: list[dict], python: str = "python3"):
-        self.task, self.attempts, self.python = task, attempts, python
+    def __init__(self, work: Path, task: dict, attempts: list[dict], python: str = "python3",
+                 packages: list[str] | None = None):
+        self.task, self.attempts, self.python, self.packages = task, attempts, python, packages or []
         self.id = task["instance_id"]
         self.root = work / "rebench" / self.id
         self.src = self.root / "src"
@@ -266,6 +267,10 @@ class Instance:
                 if (self.src / req).exists():
                     sh([str(py), "-m", "pip", "install", "-q", "-r", req], cwd=self.src, timeout=900)
             (self.venv / ".ready").write_text("ok\n")
+        if self.packages:
+            extra = sh([str(py), "-m", "pip", "install", "-q", *self.packages], timeout=900)
+            if extra.returncode != 0:
+                return {"ok": False, "why": "pip " + " ".join(self.packages) + ": " + extra.stderr[-300:]}
         return self.validate(py)
 
     def tree(self, name: str, patches: list[str]) -> Path | None:
@@ -449,7 +454,8 @@ def main(argv=None) -> int:
         if iid in envs.get("python", {}):
             version = envs["python"][iid]["version"]
             python = sh([args.uv, "python", "find", version]).stdout.strip() or f"python{version}"
-        inst = Instance(args.work.resolve(), task, choose(mixed.get(iid, [])), python)
+        packages = envs.get("packages", {}).get(iid, {}).get("install", [])
+        inst = Instance(args.work.resolve(), task, choose(mixed.get(iid, [])), python, packages)
         v = inst.prepare()
         print(f"  {iid}: environment {'ok' if v['ok'] else 'REJECTED: ' + v.get('why', '')}")
         with open(args.out / "instances.jsonl", "a") as fh:

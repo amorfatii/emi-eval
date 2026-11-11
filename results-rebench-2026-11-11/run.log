@@ -1,0 +1,107 @@
+  Melevir__cognitive_complexity-15: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi repair (4.5s), script reject
+    visible    agent0  resolved=None  (dataset True) -> emi ask_person (7.0s), script reject
+    visible    agent1  resolved=True  (dataset True) -> emi repair (4.5s), script reject
+    visible    agent2  resolved=False (dataset False) -> emi stop (3.5s), script accept
+    visible    agent3  resolved=False (dataset False) -> emi repair (4.4s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi repair (7.2s), script reject
+    spec_laws  agent0  resolved=None  (dataset True) -> emi ask_person (6.8s), script reject
+    spec_laws  agent1  resolved=True  (dataset True) -> emi repair (7.5s), script reject
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (6.5s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (8.0s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi repair (4.4s), script -
+  andialbrecht__sqlparse-231: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi incomplete (4.0s), script accept
+    visible    agent0  resolved=True  (dataset True) -> emi incomplete (4.2s), script accept
+    visible    agent1  resolved=True  (dataset True) -> emi incomplete (4.0s), script accept
+    visible    agent2  resolved=False (dataset False) -> emi incomplete (3.9s), script accept
+    visible    agent3  resolved=False (dataset False) -> emi incomplete (4.1s), script accept
+    spec_laws  gold    resolved=True  (dataset True) -> emi incomplete (4.2s), script accept
+    spec_laws  agent0  resolved=True  (dataset True) -> emi incomplete (4.4s), script accept
+    spec_laws  agent1  resolved=True  (dataset True) -> emi incomplete (4.3s), script accept
+    spec_laws  agent2  resolved=False (dataset False) -> emi incomplete (4.4s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi incomplete (4.1s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi incomplete (4.3s), script -
+  benmoran56__esper-81: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi repair (4.5s), script reject
+    visible    agent0  resolved=True  (dataset True) -> emi repair (4.3s), script reject
+    visible    agent1  resolved=True  (dataset True) -> emi repair (4.6s), script reject
+    visible    agent2  resolved=False (dataset False) -> emi repair (4.5s), script reject
+    visible    agent3  resolved=False (dataset False) -> emi repair (4.5s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi repair (8.3s), script reject
+    spec_laws  agent0  resolved=True  (dataset True) -> emi repair (8.9s), script reject
+    spec_laws  agent1  resolved=True  (dataset True) -> emi repair (8.4s), script reject
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (9.4s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (9.7s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi repair (4.4s), script -
+  johnsyweb__python_sparse_list-17: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi stop (3.4s), script accept
+    visible    agent0  resolved=True  (dataset True) -> emi stop (3.4s), script accept
+    visible    agent1  resolved=True  (dataset True) -> emi stop (3.5s), script accept
+    visible    agent2  resolved=False (dataset False) -> emi stop (3.4s), script accept
+    visible    agent3  resolved=False (dataset False) -> emi repair (4.4s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi stop (7.1s), script accept
+    spec_laws  agent0  resolved=True  (dataset True) -> emi stop (7.0s), script accept
+    spec_laws  agent1  resolved=True  (dataset True) -> emi stop (7.1s), script accept
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (6.8s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (8.1s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi stop (3.4s), script -
+  konradhalas__dacite-216: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi incomplete (1.7s), script reject
+    visible    agent0  resolved=True  (dataset True) -> emi incomplete (1.7s), script reject
+    visible    agent1  resolved=True  (dataset True) -> emi incomplete (1.6s), script reject
+    visible    agent2  resolved=False (dataset False) -> emi incomplete (1.6s), script reject
+    visible    agent3  resolved=False (dataset False) -> emi incomplete (1.7s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi incomplete (1.7s), script reject
+    spec_laws  agent0  resolved=True  (dataset True) -> emi incomplete (1.6s), script reject
+    spec_laws  agent1  resolved=True  (dataset True) -> emi incomplete (1.7s), script reject
+    spec_laws  agent2  resolved=False (dataset False) -> emi incomplete (1.8s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi incomplete (1.8s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi incomplete (1.6s), script -
+  package-url__packageurl-python-29: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi stop (1.9s), script accept
+    visible    agent0  resolved=True  (dataset True) -> emi stop (2.0s), script accept
+    visible    agent1  resolved=True  (dataset True) -> emi stop (2.0s), script accept
+    visible    agent2  resolved=False (dataset False) -> emi stop (1.9s), script accept
+    visible    agent3  resolved=False (dataset False) -> emi repair (2.3s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi stop (3.8s), script accept
+    spec_laws  agent0  resolved=True  (dataset True) -> emi stop (3.6s), script accept
+    spec_laws  agent1  resolved=True  (dataset True) -> emi stop (3.6s), script accept
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (2.5s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (4.5s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi stop (1.9s), script -
+  serge-sans-paille__gast-50: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi repair (4.7s), script reject
+    visible    agent0  resolved=True  (dataset True) -> emi repair (4.4s), script reject
+    visible    agent1  resolved=True  (dataset True) -> emi repair (4.7s), script reject
+    visible    agent2  resolved=False (dataset False) -> emi repair (4.8s), script reject
+    visible    agent3  resolved=False (dataset False) -> emi repair (5.3s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi repair (5.1s), script reject
+    spec_laws  agent0  resolved=True  (dataset True) -> emi repair (5.2s), script reject
+    spec_laws  agent1  resolved=True  (dataset True) -> emi repair (5.1s), script reject
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (5.4s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (5.3s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi repair (5.6s), script -
+  tehmaze__ansi-34: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi stop (3.5s), script accept
+    visible    agent0  resolved=True  (dataset True) -> emi stop (4.0s), script accept
+    visible    agent1  resolved=True  (dataset True) -> emi stop (4.3s), script accept
+    visible    agent2  resolved=False (dataset False) -> emi stop (4.4s), script accept
+    spec_laws  gold    resolved=True  (dataset True) -> emi stop (7.8s), script accept
+    spec_laws  agent0  resolved=True  (dataset True) -> emi stop (7.8s), script accept
+    spec_laws  agent1  resolved=True  (dataset True) -> emi stop (7.8s), script accept
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (5.5s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi stop (3.7s), script -
+exit 0
+  konradhalas__dacite-216: environment ok
+    visible    gold    resolved=True  (dataset True) -> emi stop (4.5s), script accept
+    visible    agent0  resolved=True  (dataset True) -> emi stop (4.7s), script accept
+    visible    agent1  resolved=True  (dataset True) -> emi stop (4.6s), script accept
+    visible    agent2  resolved=False (dataset False) -> emi repair (6.1s), script reject
+    visible    agent3  resolved=False (dataset False) -> emi repair (5.9s), script reject
+    spec_laws  gold    resolved=True  (dataset True) -> emi stop (8.3s), script accept
+    spec_laws  agent0  resolved=True  (dataset True) -> emi stop (8.3s), script accept
+    spec_laws  agent1  resolved=True  (dataset True) -> emi stop (8.1s), script accept
+    spec_laws  agent2  resolved=False (dataset False) -> emi repair (10.1s), script reject
+    spec_laws  agent3  resolved=False (dataset False) -> emi repair (10.7s), script reject
+    full_suite gold    resolved=True  (dataset True) -> emi stop (10.0s), script -
