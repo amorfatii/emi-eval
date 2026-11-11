@@ -76,10 +76,11 @@ def rule_meta(cond: str) -> dict[tuple[str, str], dict]:
         for f in sorted(task_dir.glob("*.py")):
             lines = f.read_text().splitlines()
             tree = ast.parse(f.read_text())
-            machines = {}
+            machines, assign_line = {}, {}
             for node in tree.body:
                 if isinstance(node, ast.Assign) and isinstance(node.value, ast.Attribute) and node.value.attr == "TestCase":
                     machines[node.value.value.id] = node.targets[0].id
+                    assign_line[node.value.value.id] = node.lineno
             for node in tree.body:
                 if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
                     name = node.name
@@ -93,6 +94,11 @@ def rule_meta(cond: str) -> dict[tuple[str, str], dict]:
                 while i >= 0 and lines[i].lstrip().startswith("#"):
                     comments.insert(0, lines[i].lstrip("# ").rstrip())
                     i -= 1
+                if not comments and isinstance(node, ast.ClassDef):  # comment put above `TestX = X.TestCase`
+                    i = assign_line[node.name] - 2
+                    while i >= 0 and lines[i].lstrip().startswith("#"):
+                        comments.insert(0, lines[i].lstrip("# ").rstrip())
+                        i -= 1
                 src = next((c for c in comments if c.startswith("Source:")), "")
                 says = " ".join(c for c in comments if not c.startswith("Source:"))
                 meta[(task_dir.name, f"{f.name}::{name}")] = {"says": says, "source": src[len("Source:"):].strip()}
