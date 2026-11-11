@@ -1,0 +1,116 @@
+diff --git a/esper/__init__.py b/esper/__init__.py
+index c67b5dd..afc525b 100644
+--- a/esper/__init__.py
++++ b/esper/__init__.py
+@@ -214,6 +214,7 @@ class World:
+         self._next_entity_id += 1
+ 
+         entity = self._next_entity_id
++        self._entities[entity] = {}
+ 
+         for component_instance in components:
+ 
+@@ -224,9 +225,6 @@ class World:
+ 
+             self._components[component_type].add(entity)
+ 
+-            if entity not in self._entities:
+-                self._entities[entity] = {}
+-
+             self._entities[entity][component_type] = component_instance
+             self.clear_cache()
+ 
+@@ -260,8 +258,8 @@ class World:
+     def entity_exists(self, entity: int) -> bool:
+         """Check if a specific Entity exists.
+ 
+-        Empty Entities (with no components) and dead Entities (destroyed
+-        by delete_entity) will not count as existent ones.
++        Empty Entities (with no components) count as existent ones.
++        Dead Entities (destroyed by delete_entity) do not.
+         """
+         return entity in self._entities and entity not in self._dead_entities
+ 
+@@ -306,7 +304,12 @@ class World:
+         A `type_alias` can also be provided. This can be useful if you're using
+         subclasses to organize your Components, but would like to query them
+         later by some common parent type.
++
++        Raises a KeyError if the given entity does not exist in the database.
+         """
++        if entity not in self._entities:
++            raise KeyError(entity)
++
+         component_type = type_alias or type(component_instance)
+ 
+         if component_type not in self._components:
+@@ -314,9 +317,6 @@ class World:
+ 
+         self._components[component_type].add(entity)
+ 
+-        if entity not in self._entities:
+-            self._entities[entity] = {}
+-
+         self._entities[entity][component_type] = component_instance
+         self.clear_cache()
+ 
+@@ -337,9 +337,6 @@ class World:
+ 
+         del self._entities[entity][component_type]
+ 
+-        if not self._entities[entity]:
+-            del self._entities[entity]
+-
+         self.clear_cache()
+         return entity
+ 
+diff --git a/tests/test_world.py b/tests/test_world.py
+index 8af332f..aebb3f0 100644
+--- a/tests/test_world.py
++++ b/tests/test_world.py
+@@ -69,8 +69,9 @@ def test_delete_entity(world):
+         world.components_for_entity(entity3)
+     with pytest.raises(KeyError):
+         world.delete_entity(999, immediate=True)
+-    with pytest.raises(KeyError):
+-        world.delete_entity(entity4, immediate=True)
++    # Empty entities exist and can be deleted:
++    world.delete_entity(entity4, immediate=True)
++    assert not world.entity_exists(entity4)
+ 
+ 
+ def test_component_for_entity(world):
+@@ -265,10 +266,32 @@ def test_entity_exists(world):
+ 
+     assert world.entity_exists(existent_entity)
+     assert not world.entity_exists(dead_entity)
+-    assert not world.entity_exists(empty_entity)
++    assert world.entity_exists(empty_entity)
+     assert not world.entity_exists(future_entity)
+ 
+ 
++def test_create_empty_entity(world):
++    entity = world.create_entity()
++    assert world.entity_exists(entity)
++    assert world.components_for_entity(entity) == ()
++    world.add_component(entity, ComponentA())
++    assert world.has_component(entity, ComponentA)
++
++
++def test_add_component_to_missing_entity(world):
++    with pytest.raises(KeyError):
++        world.add_component(123, ComponentA())
++    assert not world.entity_exists(123)
++    assert list(world.get_component(ComponentA)) == []
++
++
++def test_remove_last_component_keeps_entity(world):
++    entity = world.create_entity(ComponentA())
++    world.remove_component(entity, ComponentA)
++    assert world.entity_exists(entity)
++    assert world.components_for_entity(entity) == ()
++
++
+ def test_event_dispatch_no_handlers():
+     esper.dispatch_event("foo")
+     esper.dispatch_event("foo", 1)

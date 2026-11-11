@@ -1,0 +1,47 @@
+diff --git a/esper/__init__.py b/esper/__init__.py
+index c67b5dd..205b4ec 100644
+--- a/esper/__init__.py
++++ b/esper/__init__.py
+@@ -214,6 +214,7 @@ class World:
+         self._next_entity_id += 1
+ 
+         entity = self._next_entity_id
++        self._entities[entity] = {}
+ 
+         for component_instance in components:
+ 
+@@ -224,9 +225,6 @@ class World:
+ 
+             self._components[component_type].add(entity)
+ 
+-            if entity not in self._entities:
+-                self._entities[entity] = {}
+-
+             self._entities[entity][component_type] = component_instance
+             self.clear_cache()
+ 
+diff --git a/tests/test_world.py b/tests/test_world.py
+index 8af332f..d84f089 100644
+--- a/tests/test_world.py
++++ b/tests/test_world.py
+@@ -69,8 +69,9 @@ def test_delete_entity(world):
+         world.components_for_entity(entity3)
+     with pytest.raises(KeyError):
+         world.delete_entity(999, immediate=True)
+-    with pytest.raises(KeyError):
+-        world.delete_entity(entity4, immediate=True)
++    # An entity created without components still exists and can be deleted:
++    world.delete_entity(entity4, immediate=True)
++    assert not world.entity_exists(entity4)
+ 
+ 
+ def test_component_for_entity(world):
+@@ -265,7 +266,7 @@ def test_entity_exists(world):
+ 
+     assert world.entity_exists(existent_entity)
+     assert not world.entity_exists(dead_entity)
+-    assert not world.entity_exists(empty_entity)
++    assert world.entity_exists(empty_entity)
+     assert not world.entity_exists(future_entity)
+ 
+ 

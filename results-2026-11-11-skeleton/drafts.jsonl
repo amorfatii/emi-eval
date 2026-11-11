@@ -1,0 +1,3 @@
+{"cost_usd": 0.14999, "exit": 0, "role": "drafter", "seconds": 20.8, "stderr": "", "task": "benmoran56__esper-81", "terminal": "completed", "touched_code": false, "turns": 4, "wrote_skeleton": true}
+{"cost_usd": 0.17007740000000002, "exit": 0, "role": "drafter", "seconds": 31.0, "stderr": "", "task": "serge-sans-paille__gast-50", "terminal": "completed", "touched_code": false, "turns": 4, "wrote_skeleton": true}
+{"cost_usd": 0.1043944, "exit": 0, "role": "drafter", "seconds": 13.9, "stderr": "", "task": "package-url__packageurl-python-29", "terminal": "completed", "touched_code": false, "turns": 3, "wrote_skeleton": true}

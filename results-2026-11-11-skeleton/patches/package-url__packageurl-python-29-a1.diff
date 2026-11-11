@@ -1,0 +1,14 @@
+diff --git a/src/packageurl/__init__.py b/src/packageurl/__init__.py
+index 71225e9..cbfc8f3 100644
+--- a/src/packageurl/__init__.py
++++ b/src/packageurl/__init__.py
+@@ -279,6 +279,9 @@ class PackageURL(namedtuple('PackageURL', _components)):
+             namespace=namespace, name=name, version=version,
+             qualifiers=qualifiers, subpath=subpath)
+ 
++    def __hash__(self):
++        return hash(self.to_string())
++
+     def __str__(self, *args, **kwargs):
+         return self.to_string()
+ 

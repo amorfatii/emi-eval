@@ -1,0 +1,108 @@
+diff --git a/gast/ast2.py b/gast/ast2.py
+index 0e0a8ed..fad8367 100644
+--- a/gast/ast2.py
++++ b/gast/ast2.py
+@@ -65,6 +65,16 @@ class Ast2ToGAst(AstToGAst):
+         new_node.end_lineno = new_node.end_col_offset = None
+         return new_node
+ 
++    def visit_Assign(self, node):
++        new_node = gast.Assign(
++            self._visit(node.targets),
++            self._visit(node.value),
++            None,  # type_comment
++        )
++        gast.copy_location(new_node, node)
++        new_node.end_lineno = new_node.end_col_offset = None
++        return new_node
++
+     def visit_Raise(self, node):
+         ntype = self._visit(node.type)
+         ninst = self._visit(node.inst)
+@@ -298,6 +308,14 @@ class GAstToAst2(GAstToAst):
+         ast.copy_location(new_node, node)
+         return new_node
+ 
++    def visit_Assign(self, node):
++        new_node = ast.Assign(
++            self._visit(node.targets),
++            self._visit(node.value),
++        )
++        ast.copy_location(new_node, node)
++        return new_node
++
+     def visit_Raise(self, node):
+         if isinstance(node.exc, gast.Call) and \
+            isinstance(node.exc.func, gast.Attribute) and \
+diff --git a/gast/ast3.py b/gast/ast3.py
+index 2d56fca..b1510e2 100644
+--- a/gast/ast3.py
++++ b/gast/ast3.py
+@@ -111,6 +111,15 @@ class Ast3ToGAst(AstToGAst):
+             gast.copy_location(new_node, node)
+             return new_node
+ 
++        def visit_Assign(self, node):
++            new_node = gast.Assign(
++                self._visit(node.targets),
++                self._visit(node.value),
++                None,  # type_comment
++            )
++            gast.copy_location(new_node, node)
++            return new_node
++
+         def visit_AsyncWith(self, node):
+             new_node = gast.AsyncWith(
+                 self._visit(node.items),
+@@ -253,6 +262,14 @@ class GAstToAst3(GAstToAst):
+             new_node = ast.Module(self._visit(node.body))
+             return new_node
+ 
++        def visit_Assign(self, node):
++            new_node = ast.Assign(
++                self._visit(node.targets),
++                self._visit(node.value),
++            )
++            ast.copy_location(new_node, node)
++            return new_node
++
+         def visit_Constant(self, node):
+             if node.value is None:
+                 new_node = ast.NameConstant(node.value)
+diff --git a/gast/gast.py b/gast/gast.py
+index 317d4b1..00150ca 100644
+--- a/gast/gast.py
++++ b/gast/gast.py
+@@ -61,7 +61,7 @@ _nodes = (
+     ('Delete', (('targets',),
+                 ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
+                 (stmt,))),
+-    ('Assign', (('targets', 'value',),
++    ('Assign', (('targets', 'value', 'type_comment'),
+                 ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
+                 (stmt,))),
+     ('AugAssign', (('target', 'op', 'value',),
+diff --git a/tests/test_compat.py b/tests/test_compat.py
+index e944647..c04c433 100644
+--- a/tests/test_compat.py
++++ b/tests/test_compat.py
+@@ -61,7 +61,8 @@ class CompatTestCase(unittest.TestCase):
+                 compile(gast.gast_to_ast(tree), '<test>', 'exec')
+                 norm = ("Module(body=[Assign(targets=[Name(id='e', ctx=Store()"
+                         ", annotation=None, type_comment=None"
+-                        ")], value=Constant(value=1, kind=None)), Expr(value="
++                        ")], value=Constant(value=1, kind=None), "
++                        "type_comment=None), Expr(value="
+                         "JoinedStr(values=[FormattedValue(value=Name(id='e', "
+                         "ctx=Load(), annotation=None, type_comment=None), "
+                         "conversion=-1, format_spec=None)]))], "
+@@ -74,7 +75,8 @@ class CompatTestCase(unittest.TestCase):
+                 compile(gast.gast_to_ast(tree), '<test>', 'exec')
+                 norm = ("Module(body=[Assign(targets=[Name(id='e', ctx=Store()"
+                         ", annotation=None, type_comment=None"
+-                        ")], value=Constant(value=1, kind=None)), Expr(value="
++                        ")], value=Constant(value=1, kind=None), "
++                        "type_comment=None), Expr(value="
+                         "JoinedStr(values=[Constant(value='e = ', kind=None), "
+                         "FormattedValue(value=Name(id='e', ctx=Load(), "
+                         "annotation=None, type_comment=None), "

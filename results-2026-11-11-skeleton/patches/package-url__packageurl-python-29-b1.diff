@@ -1,0 +1,14 @@
+diff --git a/src/packageurl/__init__.py b/src/packageurl/__init__.py
+index 71225e9..ae6e148 100644
+--- a/src/packageurl/__init__.py
++++ b/src/packageurl/__init__.py
+@@ -282,6 +282,9 @@ class PackageURL(namedtuple('PackageURL', _components)):
+     def __str__(self, *args, **kwargs):
+         return self.to_string()
+ 
++    def __hash__(self):
++        return hash(self.to_string())
++
+     def to_dict(self, encode=False):
+         """
+         Return an ordered dict of purl components as {key: value}. If `encode`

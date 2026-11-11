@@ -1,0 +1,12 @@
+{"applies": true, "env_ok": true, "f2p_ok": false, "failed": ["tests/test_world.py::test_adding_component_to_not_existing_entity_raises_error"], "graded": "source_only", "name": "benmoran56__esper-81-a1", "p2p_ok": true, "resolved": false, "task": "benmoran56__esper-81"}
+{"applies": true, "env_ok": true, "f2p_ok": false, "failed": ["tests/test_world.py::test_adding_component_to_not_existing_entity_raises_error"], "graded": "source_only", "name": "benmoran56__esper-81-a2", "p2p_ok": true, "resolved": false, "task": "benmoran56__esper-81"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "benmoran56__esper-81-b1", "p2p_ok": true, "resolved": true, "task": "benmoran56__esper-81"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "benmoran56__esper-81-b2", "p2p_ok": true, "resolved": true, "task": "benmoran56__esper-81"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "serge-sans-paille__gast-50-a1", "p2p_ok": true, "resolved": true, "task": "serge-sans-paille__gast-50"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "serge-sans-paille__gast-50-a2", "p2p_ok": true, "resolved": true, "task": "serge-sans-paille__gast-50"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "serge-sans-paille__gast-50-b1", "p2p_ok": true, "resolved": true, "task": "serge-sans-paille__gast-50"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "source_only", "name": "serge-sans-paille__gast-50-b2", "p2p_ok": true, "resolved": true, "task": "serge-sans-paille__gast-50"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "full", "name": "package-url__packageurl-python-29-a1", "p2p_ok": true, "resolved": true, "task": "package-url__packageurl-python-29"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "full", "name": "package-url__packageurl-python-29-a2", "p2p_ok": true, "resolved": true, "task": "package-url__packageurl-python-29"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "full", "name": "package-url__packageurl-python-29-b1", "p2p_ok": true, "resolved": true, "task": "package-url__packageurl-python-29"}
+{"applies": true, "env_ok": true, "f2p_ok": true, "failed": [], "graded": "full", "name": "package-url__packageurl-python-29-b2", "p2p_ok": true, "resolved": true, "task": "package-url__packageurl-python-29"}
