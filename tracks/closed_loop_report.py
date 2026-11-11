@@ -22,16 +22,21 @@ def main(d: str) -> int:
     out = ["# Trial E: a real agent, four ways", "",
            f"{len(rows)} runs over {len({r['task'] for r in rows})} tasks; model(s): "
            f"{', '.join(sorted({m for r in rows for m in r.get('models_used') or []}))}.", "",
-           "| Setup | Runs | Wrong \"done\" accepted | Ended correct | Sent back (mean) | Useful / wrong send-backs "
-           "| Tokens (median) | Cost (mean) |",
-           "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+           "| Setup | Runs | Wrong \"done\" accepted | Wrong, not caught | Ended correct | Correct, not accepted "
+           "| Could not check | Sent to person | Sent back (mean) | Useful / wrong send-backs | Tokens (median) | Cost (mean) |",
+           "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for s, rs in by.items():
         if not rs:
             continue
         useful = sum(lbl == "useful" for r in rs for lbl in r["send_backs"])
         wrong = sum(lbl == "wrong" for r in rs for lbl in r["send_backs"])
-        out.append(f"| {s} | {len(rs)} | {pct(sum(r['wrong_done'] for r in rs), len(rs))} | "
+        last = [r.get("last_checker_action") for r in rs]
+        uncaught = sum((not r["final_correct"]) and (r["accepted"] or r.get("last_checker_action") == "incomplete")
+                       for r in rs)
+        out.append(f"| {s} | {len(rs)} | {pct(sum(r['wrong_done'] for r in rs), len(rs))} | {pct(uncaught, len(rs))} | "
                    f"{pct(sum(r['final_correct'] for r in rs), len(rs))} | "
+                   f"{sum(r['final_correct'] and not r['accepted'] for r in rs)} | "
+                   f"{last.count('incomplete')} | {last.count('ask_person')} | "
                    f"{statistics.mean(r['sent_back'] for r in rs):.1f} | {useful} / {wrong} | "
                    f"{int(statistics.median(r['tokens_in'] for r in rs)):,} | "
                    f"${statistics.mean((r['cost_usd'] or 0) for r in rs):.2f} |")
@@ -44,10 +49,13 @@ def main(d: str) -> int:
         if not both:
             return [f"- {a} vs {b}: no paired runs.", ""]
         wa, wb = sum(A[k]["wrong_done"] for k in both), sum(B[k]["wrong_done"] for k in both)
+        nc = lambda r: (not r["final_correct"]) and (r["accepted"] or r.get("last_checker_action") == "incomplete")  # noqa: E731
+        ua, ub = sum(nc(A[k]) for k in both), sum(nc(B[k]) for k in both)
         ca, cb = sum(A[k]["final_correct"] for k in both), sum(B[k]["final_correct"] for k in both)
         ta = statistics.median(A[k]["tokens_in"] for k in both)
         tb = statistics.median(B[k]["tokens_in"] for k in both)
-        return [f"- **{a} vs {b}** ({len(both)} paired runs): wrong \"done\" {wa} vs {wb}; "
+        return [f"- **{a} vs {b}** ({len(both)} paired runs): wrong \"done\" accepted {wa} vs {wb}; "
+                f"wrong and not caught {ua} vs {ub}; "
                 f"ended correct {ca} vs {cb}; median tokens {int(ta):,} vs {int(tb):,} "
                 f"({100 * (ta / tb - 1):+.0f}%)." if tb else "", ""]
 

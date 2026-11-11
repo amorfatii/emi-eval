@@ -1,0 +1,24 @@
+apache__iceberg-python-3295 script    run=1 correct=True  accepted=True  sent_back=0 $0.0858947 46.1s
+apache__iceberg-python-3295 emi       run=1 correct=True  accepted=True  sent_back=0 $0.074682 91.3s
+apache__iceberg-python-3295 emi_rules run=1 correct=True  accepted=True  sent_back=0 $0.0659787 76.4s
+apache__iceberg-python-3295 none      run=1 correct=True  accepted=True  sent_back=0 $0.06496320000000001 24.4s
+astronomy-commons__lsdb-1349 emi       run=1 correct=True  accepted=True  sent_back=0 $0.22461839999999997 234.7s
+astronomy-commons__lsdb-1349 emi_rules run=1 correct=True  accepted=True  sent_back=0 $0.1991336 185.9s
+astronomy-commons__lsdb-1349 none      run=1 correct=True  accepted=True  sent_back=0 $0.179408 52.5s
+astronomy-commons__lsdb-1349 script    run=1 correct=True  accepted=False sent_back=3 $0.2753464 242.0s
+copier-org__copier-2646 emi_rules run=1 correct=True  accepted=True  sent_back=0 $0.08201470000000001 72.4s
+copier-org__copier-2646 none      run=1 correct=True  accepted=True  sent_back=0 $0.090723 37.7s
+copier-org__copier-2646 script    run=1 correct=True  accepted=True  sent_back=0 $0.0730925 47.8s
+copier-org__copier-2646 emi       run=1 correct=True  accepted=True  sent_back=0 $0.059260900000000005 70.4s
+cs-si__eodag-2176      none      run=1 correct=False accepted=True  sent_back=0 $0.0489111 27.4s
+cs-si__eodag-2176      script    run=1 correct=False accepted=True  sent_back=1 $0.0776036 100.5s
+cs-si__eodag-2176      emi       run=1 correct=False accepted=True  sent_back=1 $0.08260070000000001 184.6s
+cs-si__eodag-2176      emi_rules run=1 correct=False accepted=True  sent_back=1 $0.09362720000000002 303.0s
+databricks__dbt-databricks-1428 script    run=1 correct=False accepted=True  sent_back=0 $0.1390598 117.2s
+databricks__dbt-databricks-1428 emi       run=1 correct=False accepted=True  sent_back=0 $0.14995339999999996 332.1s
+databricks__dbt-databricks-1428 emi_rules run=1 correct=False accepted=True  sent_back=0 $0.1208136 166.8s
+databricks__dbt-databricks-1428 none      run=1 correct=False accepted=True  sent_back=0 $0.1154736 32.8s
+graphistry__pygraphistry-1277 emi       run=1 correct=False accepted=False sent_back=1 $0.2109836 985.3s
+graphistry__pygraphistry-1277 emi_rules run=1 correct=False accepted=False sent_back=0 $0.1691088 1109.4s
+graphistry__pygraphistry-1277 none      run=1 correct=False accepted=True  sent_back=0 $0.10096569999999999 34.5s
+exit 143

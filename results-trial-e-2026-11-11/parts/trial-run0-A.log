@@ -1,0 +1,23 @@
+apache__iceberg-python-3295 none      run=0 correct=True  accepted=True  sent_back=0 $0.0712504 29.8s
+apache__iceberg-python-3295 script    run=0 correct=True  accepted=True  sent_back=0 $0.0749514 37.3s
+apache__iceberg-python-3295 emi       run=0 correct=True  accepted=True  sent_back=0 $0.06983099999999999 84.4s
+apache__iceberg-python-3295 emi_rules run=0 correct=True  accepted=True  sent_back=0 $0.07626880000000001 85.3s
+astronomy-commons__lsdb-1349 script    run=0 correct=True  accepted=False sent_back=3 $0.35812579999999994 210.6s
+astronomy-commons__lsdb-1349 emi       run=0 correct=True  accepted=True  sent_back=0 $0.2268404 143.1s
+astronomy-commons__lsdb-1349 emi_rules run=0 correct=True  accepted=True  sent_back=0 $0.251621 168.0s
+astronomy-commons__lsdb-1349 none      run=0 correct=False accepted=False sent_back=0 $0 3.0s
+copier-org__copier-2646 emi       run=0 correct=False accepted=False sent_back=0 $0 2.9s
+copier-org__copier-2646 emi_rules run=0 correct=False accepted=False sent_back=0 $0 3.5s
+copier-org__copier-2646 none      run=0 correct=False accepted=False sent_back=0 $0 3.9s
+copier-org__copier-2646 script    run=0 correct=False accepted=False sent_back=0 $0 2.1s
+cs-si__eodag-2176      emi_rules run=0 correct=False accepted=True  sent_back=1 $0.0682434 441.0s
+cs-si__eodag-2176      none      run=0 correct=False accepted=True  sent_back=0 $0.0757525 32.6s
+cs-si__eodag-2176      script    run=0 correct=False accepted=True  sent_back=1 $0.18667160000000005 181.9s
+cs-si__eodag-2176      emi       run=0 correct=False accepted=True  sent_back=1 $0.0914634 176.2s
+databricks__dbt-databricks-1428 none      run=0 correct=False accepted=True  sent_back=0 $0.1300916 75.7s
+databricks__dbt-databricks-1428 script    run=0 correct=False accepted=True  sent_back=0 $0.1531609 324.8s
+databricks__dbt-databricks-1428 emi       run=0 correct=False accepted=True  sent_back=0 $0.1356627 173.0s
+databricks__dbt-databricks-1428 emi_rules run=0 correct=False accepted=True  sent_back=0 $0.11320790000000003 143.7s
+graphistry__pygraphistry-1277 script    run=0 correct=False accepted=False sent_back=3 $0.30739380000000005 697.1s
+graphistry__pygraphistry-1277 emi       run=0 correct=True  accepted=False sent_back=0 $0.16238840000000002 879.6s
+exit 143
