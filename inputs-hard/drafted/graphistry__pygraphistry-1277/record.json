@@ -1,0 +1,97 @@
+{
+ "task": "graphistry__pygraphistry-1277",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Which of the repro shapes should become admitted (positive) behavior?",
+   "choices": [
+    "A and D only (simple row projection / aggregates)",
+    "A, B, and D (all non-carry-rewriter shapes)",
+    "A, B, C, and D (all)",
+    "Only A; keep others rejected with pointers to this issue",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "For shape C (collect \u2192 UNWIND \u2192 MATCH with WHERE NOT friend = root), which behavior is wanted given it references `root` from an earlier MATCH?",
+   "choices": [
+    "Admit it, with root visible after the collect/UNWIND",
+    "Keep rejecting it, with an error pointing to this issue",
+    "Doesn't depend on hidden carries, so admit only if it needs no new carry logic",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "For shapes B and D (aggregates grouped by a property of one alias while aggregating another alias), what should happen to rows with null group keys or null aggregate inputs?",
+   "choices": [
+    "Follow Cypher semantics: null keys form one group, and count/max skip nulls",
+    "Reject null-key cases explicitly",
+    "Match whatever the existing single-source aggregate lowering does",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should shapes that stay rejected be reported?",
+   "choices": [
+    "Keep the current error type and code, and add the issue number (#1277) to the message",
+    "Add a new dedicated error code that references the issue",
+    "Only update the message text; existing tests stay as they are",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should the admitted multi-source projections be allowed to produce when the projected columns come from different MATCH aliases?",
+   "choices": [
+    "Row table only, with one row per matched path and no hidden carry columns",
+    "Row table, plus support for the same query as the final step of a larger chain",
+    "Row table that allows ORDER BY, LIMIT, or DISTINCT afterward",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Which of the repro shapes should become admitted (positive) behavior?",
+   "choice": "Only A; keep others rejected with pointers to this issue"
+  },
+  {
+   "q": "For shape C (collect \u2192 UNWIND \u2192 MATCH with WHERE NOT friend = root), which behavior is wanted given it references `root` from an earlier MATCH?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "For shapes B and D (aggregates grouped by a property of one alias while aggregating another alias), what should happen to rows with null group keys or null aggregate inputs?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should shapes that stay rejected be reported?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should the admitted multi-source projections be allowed to produce when the projected columns come from different MATCH aliases?",
+   "choice": "Row table only, with one row per matched path and no hidden carry columns"
+  }
+ ],
+ "drafted": "from __future__ import annotations\n\nimport pandas as pd\nimport pytest\nfrom hypothesis import given, settings, strategies as st\n\nfrom graphistry.compute.exceptions import GFQLValidationError\nfrom graphistry.tests.compute.gfql.cypher.test_lowering import _mk_graph, _to_pandas_df\n\n\ndef _ab_graph(a_ids, b_ids, edges):\n    nodes = pd.DataFrame(\n        {\n            \"id\": list(a_ids) + list(b_ids),\n            \"label__A\": [True] * len(a_ids) + [False] * len(b_ids),\n            \"label__B\": [False] * len(a_ids) + [True] * len(b_ids),\n        }\n    )\n    edge_df = pd.DataFrame(\n        {\n            \"s\": [s for s, _ in edges],\n            \"d\": [d for _, d in edges],\n            \"type\": [\"R\"] * len(edges),\n        }\n    )\n    return _mk_graph(nodes, edge_df)\n\n\n_SHAPE_A = \"MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id\"\n\n\ndef test_shape_a_projects_properties_of_two_match_aliases_through_with() -> None:\n    \"\"\"Shape A (MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id) is admitted and returns one row per matched path.\"\"\"\n    g = _ab_graph([1, 2], [10, 20, 30], [(1, 10), (1, 20), (2, 30)])\n    result = g.gfql(_SHAPE_A)\n    df = _to_pandas_df(result._nodes)\n    got = sorted(zip(df[\"a_id\"].tolist(), df[\"b_id\"].tolist()))\n    assert got == [(1, 10), (1, 20), (2, 30)]\n\n\ndef test_shape_a_result_has_only_the_projected_columns() -> None:\n    \"\"\"Shape A returns a row table containing exactly the columns a_id and b_id, with no hidden carry columns.\"\"\"\n    g = _ab_graph([1, 2], [10, 20], [(1, 10), (2, 20)])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == [\"a_id\", \"b_id\"]\n\n\ndef test_shape_a_ignores_edges_that_do_not_match_the_pattern() -> None:\n    \"\"\"Shape A yields no rows when no A-to-B path of type R exists.\"\"\"\n    g = _ab_graph([1], [10], [])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert len(df) == 0\n\n\n@settings(max_examples=40, deadline=None)\n@given(\n    st.sets(\n        st.tuples(st.integers(0, 4), st.integers(100, 104)),\n        max_size=15,\n    )\n)\ndef test_shape_a_returns_exactly_one_row_per_matched_path(edge_set) -> None:\n    \"\"\"For every graph, shape A returns one row per matched A-to-B path, holding that path's two ids and no other columns.\"\"\"\n    edges = sorted(edge_set)\n    g = _ab_graph(list(range(5)), list(range(100, 105)), edges)\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == [\"a_id\", \"b_id\"]\n    got = sorted(zip(df[\"a_id\"].tolist(), df[\"b_id\"].tolist()))\n    assert got == edges\n\n\n@pytest.mark.parametrize(\n    \"query\",\n    [\n        # Shape B\n        \"MATCH (a)-[r]->(b) RETURN a.id AS a_id, max(b.score) AS max_b\",\n        # Shape D\n        \"MATCH (me:Person)--(you:Person) RETURN me.age AS age, count(you.age) AS cnt\",\n    ],\n)\ndef test_shapes_b_and_d_stay_rejected_and_point_to_issue_1277(query: str) -> None:\n    \"\"\"Shapes B and D (aggregates grouped by one alias's property over another alias) are still rejected with a validation error that points to issue #1277.\"\"\"\n    g = _mk_graph(pd.DataFrame({\"id\": []}), pd.DataFrame({\"s\": [], \"d\": []}))\n    with pytest.raises(GFQLValidationError) as exc_info:\n        g.gfql(query)\n    assert \"#1277\" in exc_info.value.message\n",
+ "cost_usd": 0.1222,
+ "passing_on_baseline": [],
+ "passing_on_fix": [
+  "test_shape_a_ignores_edges_that_do_not_match_the_pattern",
+  "test_shape_a_projects_properties_of_two_match_aliases_through_with",
+  "test_shape_a_result_has_only_the_projected_columns",
+  "test_shape_a_returns_exactly_one_row_per_matched_path"
+ ],
+ "rules": "from __future__ import annotations\nimport pandas as pd\nimport pytest\nfrom hypothesis import given, settings, strategies as st\nfrom graphistry.compute.exceptions import GFQLValidationError\nfrom graphistry.tests.compute.gfql.cypher.test_lowering import _mk_graph, _to_pandas_df\n\ndef _ab_graph(a_ids, b_ids, edges):\n    nodes = pd.DataFrame({'id': list(a_ids) + list(b_ids), 'label__A': [True] * len(a_ids) + [False] * len(b_ids), 'label__B': [False] * len(a_ids) + [True] * len(b_ids)})\n    edge_df = pd.DataFrame({'s': [s for s, _ in edges], 'd': [d for _, d in edges], 'type': ['R'] * len(edges)})\n    return _mk_graph(nodes, edge_df)\n_SHAPE_A = 'MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id'\n\ndef test_shape_a_projects_properties_of_two_match_aliases_through_with() -> None:\n    \"\"\"Shape A (MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id) is admitted and returns one row per matched path.\"\"\"\n    g = _ab_graph([1, 2], [10, 20, 30], [(1, 10), (1, 20), (2, 30)])\n    result = g.gfql(_SHAPE_A)\n    df = _to_pandas_df(result._nodes)\n    got = sorted(zip(df['a_id'].tolist(), df['b_id'].tolist()))\n    assert got == [(1, 10), (1, 20), (2, 30)]\n\ndef test_shape_a_result_has_only_the_projected_columns() -> None:\n    \"\"\"Shape A returns a row table containing exactly the columns a_id and b_id, with no hidden carry columns.\"\"\"\n    g = _ab_graph([1, 2], [10, 20], [(1, 10), (2, 20)])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == ['a_id', 'b_id']\n\ndef test_shape_a_ignores_edges_that_do_not_match_the_pattern() -> None:\n    \"\"\"Shape A yields no rows when no A-to-B path of type R exists.\"\"\"\n    g = _ab_graph([1], [10], [])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert len(df) == 0\n\n@settings(max_examples=40, deadline=None)\n@given(st.sets(st.tuples(st.integers(0, 4), st.integers(100, 104)), max_size=15))\ndef test_shape_a_returns_exactly_one_row_per_matched_path(edge_set) -> None:\n    \"\"\"For every graph, shape A returns one row per matched A-to-B path, holding that path's two ids and no other columns.\"\"\"\n    edges = sorted(edge_set)\n    g = _ab_graph(list(range(5)), list(range(100, 105)), edges)\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == ['a_id', 'b_id']\n    got = sorted(zip(df['a_id'].tolist(), df['b_id'].tolist()))\n    assert got == edges\n\n@pytest.mark.parametrize('query', ['MATCH (a)-[r]->(b) RETURN a.id AS a_id, max(b.score) AS max_b', 'MATCH (me:Person)--(you:Person) RETURN me.age AS age, count(you.age) AS cnt'])\ndef test_shapes_b_and_d_stay_rejected_and_point_to_issue_1277(query: str) -> None:\n    \"\"\"Shapes B and D (aggregates grouped by one alias's property over another alias) are still rejected with a validation error that points to issue #1277.\"\"\"\n    g = _mk_graph(pd.DataFrame({'id': []}), pd.DataFrame({'s': [], 'd': []}))\n    with pytest.raises(GFQLValidationError) as exc_info:\n        g.gfql(query)\n    assert '#1277' in exc_info.value.message",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_shape_a_ignores_edges_that_do_not_match_the_pattern",
+  "test_shape_a_projects_properties_of_two_match_aliases_through_with",
+  "test_shape_a_result_has_only_the_projected_columns",
+  "test_shape_a_returns_exactly_one_row_per_matched_path",
+  "test_shapes_b_and_d_stay_rejected_and_point_to_issue_1277"
+ ],
+ "rejected_at_approval": [
+  "test_shapes_b_and_d_stay_rejected_and_point_to_issue_1277"
+ ],
+ "approved": "from __future__ import annotations\nimport pandas as pd\nimport pytest\nfrom hypothesis import given, settings, strategies as st\nfrom graphistry.compute.exceptions import GFQLValidationError\nfrom graphistry.tests.compute.gfql.cypher.test_lowering import _mk_graph, _to_pandas_df\n\ndef _ab_graph(a_ids, b_ids, edges):\n    nodes = pd.DataFrame({'id': list(a_ids) + list(b_ids), 'label__A': [True] * len(a_ids) + [False] * len(b_ids), 'label__B': [False] * len(a_ids) + [True] * len(b_ids)})\n    edge_df = pd.DataFrame({'s': [s for s, _ in edges], 'd': [d for _, d in edges], 'type': ['R'] * len(edges)})\n    return _mk_graph(nodes, edge_df)\n_SHAPE_A = 'MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id'\n\ndef test_shape_a_projects_properties_of_two_match_aliases_through_with() -> None:\n    \"\"\"Shape A (MATCH (a:A)-[:R]->(b:B) WITH a.id AS a_id, b.id AS b_id RETURN a_id, b_id) is admitted and returns one row per matched path.\"\"\"\n    g = _ab_graph([1, 2], [10, 20, 30], [(1, 10), (1, 20), (2, 30)])\n    result = g.gfql(_SHAPE_A)\n    df = _to_pandas_df(result._nodes)\n    got = sorted(zip(df['a_id'].tolist(), df['b_id'].tolist()))\n    assert got == [(1, 10), (1, 20), (2, 30)]\n\ndef test_shape_a_result_has_only_the_projected_columns() -> None:\n    \"\"\"Shape A returns a row table containing exactly the columns a_id and b_id, with no hidden carry columns.\"\"\"\n    g = _ab_graph([1, 2], [10, 20], [(1, 10), (2, 20)])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == ['a_id', 'b_id']\n\ndef test_shape_a_ignores_edges_that_do_not_match_the_pattern() -> None:\n    \"\"\"Shape A yields no rows when no A-to-B path of type R exists.\"\"\"\n    g = _ab_graph([1], [10], [])\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert len(df) == 0\n\n@settings(max_examples=40, deadline=None)\n@given(st.sets(st.tuples(st.integers(0, 4), st.integers(100, 104)), max_size=15))\ndef test_shape_a_returns_exactly_one_row_per_matched_path(edge_set) -> None:\n    \"\"\"For every graph, shape A returns one row per matched A-to-B path, holding that path's two ids and no other columns.\"\"\"\n    edges = sorted(edge_set)\n    g = _ab_graph(list(range(5)), list(range(100, 105)), edges)\n    df = _to_pandas_df(g.gfql(_SHAPE_A)._nodes)\n    assert list(df.columns) == ['a_id', 'b_id']\n    got = sorted(zip(df['a_id'].tolist(), df['b_id'].tolist()))\n    assert got == edges",
+ "approved_count": 4
+}

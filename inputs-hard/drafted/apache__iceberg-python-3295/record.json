@@ -1,0 +1,100 @@
+{
+ "task": "apache__iceberg-python-3295",
+ "passing_on_baseline": [],
+ "passing_on_fix": [
+  "test_deepcopy_and_from_issue",
+  "test_deepcopy_equals_original_for_any_expression",
+  "test_deepcopy_hash_matches_original",
+  "test_deepcopy_is_independent_object",
+  "test_deepcopy_not",
+  "test_deepcopy_or"
+ ],
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Which classes should deepcopy be fixed for? Bound and unbound predicates (BoundIn, BoundIsNull, In, NotIn and others) also override `__new__` with required args.",
+   "choices": [
+    "Only And, Or, Not, as the issue says",
+    "Every expression class that overrides `__new__` (And/Or/Not, In/NotIn, and the Bound* predicates)",
+    "And/Or/Not plus a shared fix in the base class that covers the rest",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should the deep copy of an And/Or/Not be?",
+   "choices": [
+    "A new, equal object whose children are also deep-copied (independent of the original)",
+    "A new, equal object that may share its children with the original",
+    "Simplified like a fresh constructor call, e.g. re-running And(left, right) shortcuts",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should `copy.copy()` (shallow) and `model_copy()` also work on And/Or/Not, or only `deepcopy`?",
+   "choices": [
+    "deepcopy only",
+    "deepcopy and copy.copy",
+    "deepcopy, copy.copy and model_copy(update=...)",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should deepcopy keep the singleton identity of AlwaysTrue/AlwaysFalse when they are children, for example `deepcopy(And(x, AlwaysTrue))`?",
+   "choices": [
+    "Yes, children that are singletons stay the same instance (`is` holds)",
+    "Equality is enough, identity not required",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the fix be tested?",
+   "choices": [
+    "Unit tests deep-copying And/Or/Not, including nested ones, and asserting equality and independence",
+    "Also cover bound expressions and pickle round-trips",
+    "Minimal: one regression test with the issue's example",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Which classes should deepcopy be fixed for? Bound and unbound predicates (BoundIn, BoundIsNull, In, NotIn and others) also override `__new__` with required args.",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should the deep copy of an And/Or/Not be?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Should `copy.copy()` (shallow) and `model_copy()` also work on And/Or/Not, or only `deepcopy`?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Should deepcopy keep the singleton identity of AlwaysTrue/AlwaysFalse when they are children, for example `deepcopy(And(x, AlwaysTrue))`?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should the fix be tested?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import copy\n\nfrom hypothesis import given, strategies as st\n\nfrom pyiceberg.expressions import (\n    And,\n    AlwaysFalse,\n    AlwaysTrue,\n    EqualTo,\n    GreaterThan,\n    Not,\n    Or,\n)\n\n\ndef _leaf(name, value):\n    return EqualTo(name, value)\n\n\nleaf_strategy = st.builds(\n    lambda n, v: _leaf(n, v),\n    st.sampled_from([\"x\", \"y\", \"z\", \"a\"]),\n    st.integers(min_value=-1000, max_value=1000),\n)\n\nexpr_strategy = st.recursive(\n    leaf_strategy,\n    lambda children: st.one_of(\n        st.builds(lambda a, b: And(a, b), children, children),\n        st.builds(lambda a, b: Or(a, b), children, children),\n        st.builds(lambda a: Not(a), children),\n    ),\n    max_leaves=8,\n)\n\n\ndef test_deepcopy_and_from_issue():\n    \"\"\"Deep-copying And(EqualTo(\"x\", 1), EqualTo(\"y\", 2)) does not raise and gives an equal expression.\"\"\"\n    expr = And(EqualTo(\"x\", 1), EqualTo(\"y\", 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, And)\n\n\ndef test_deepcopy_or():\n    \"\"\"Deep-copying an Or expression does not raise and gives an equal expression.\"\"\"\n    expr = Or(EqualTo(\"x\", 1), EqualTo(\"y\", 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Or)\n\n\ndef test_deepcopy_not():\n    \"\"\"Deep-copying a Not expression does not raise and gives an equal expression.\"\"\"\n    expr = Not(EqualTo(\"x\", 1))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Not)\n\n\ndef test_deepcopy_nested():\n    \"\"\"Deep-copying nested And/Or/Not expressions gives an equal expression.\"\"\"\n    expr = And(Or(EqualTo(\"x\", 1), Not(GreaterThan(\"y\", 2))), Not(EqualTo(\"z\", 3)))\n    result = copy.deepcopy(expr)\n    assert result == expr\n\n\ndef test_deepcopy_inside_container():\n    \"\"\"Deep-copying a dict containing And/Or/Not expressions (as Ray configs do) works.\"\"\"\n    config = {\"filters\": [And(EqualTo(\"x\", 1), EqualTo(\"y\", 2)), Or(EqualTo(\"a\", 1), EqualTo(\"b\", 2)), Not(EqualTo(\"c\", 3))]}\n    result = copy.deepcopy(config)\n    assert result == config\n\n\ndef test_deepcopy_with_always_true_false_children():\n    \"\"\"Deep-copying And/Or/Not with AlwaysTrue or AlwaysFalse children does not raise.\"\"\"\n    for expr in [\n        And(EqualTo(\"x\", 1), AlwaysTrue()),\n        Or(EqualTo(\"x\", 1), AlwaysFalse()),\n        Not(AlwaysTrue()),\n    ]:\n        assert copy.deepcopy(expr) == expr\n\n\ndef test_deepcopy_is_independent_object():\n    \"\"\"A deep copy of a compound expression is a distinct object from the original.\"\"\"\n    expr = And(EqualTo(\"x\", 1), EqualTo(\"y\", 2))\n    result = copy.deepcopy(expr)\n    assert result is not expr\n\n\n@given(expr_strategy)\ndef test_deepcopy_equals_original_for_any_expression(expr):\n    \"\"\"For any expression built from And, Or, Not and predicates, deepcopy succeeds and equals the original.\"\"\"\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert type(result) is type(expr)\n    assert str(result) == str(expr)\n\n\n@given(expr_strategy)\ndef test_deepcopy_hash_matches_original(expr):\n    \"\"\"A deep copy of any expression has the same hash as the original.\"\"\"\n    assert hash(copy.deepcopy(expr)) == hash(expr)\n",
+ "rules": "import copy\nfrom hypothesis import given, strategies as st\nfrom pyiceberg.expressions import And, AlwaysFalse, AlwaysTrue, EqualTo, GreaterThan, Not, Or\n\ndef _leaf(name, value):\n    return EqualTo(name, value)\nleaf_strategy = st.builds(lambda n, v: _leaf(n, v), st.sampled_from(['x', 'y', 'z', 'a']), st.integers(min_value=-1000, max_value=1000))\nexpr_strategy = st.recursive(leaf_strategy, lambda children: st.one_of(st.builds(lambda a, b: And(a, b), children, children), st.builds(lambda a, b: Or(a, b), children, children), st.builds(lambda a: Not(a), children)), max_leaves=8)\n\ndef test_deepcopy_and_from_issue():\n    \"\"\"Deep-copying And(EqualTo(\"x\", 1), EqualTo(\"y\", 2)) does not raise and gives an equal expression.\"\"\"\n    expr = And(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, And)\n\ndef test_deepcopy_or():\n    \"\"\"Deep-copying an Or expression does not raise and gives an equal expression.\"\"\"\n    expr = Or(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Or)\n\ndef test_deepcopy_not():\n    \"\"\"Deep-copying a Not expression does not raise and gives an equal expression.\"\"\"\n    expr = Not(EqualTo('x', 1))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Not)\n\ndef test_deepcopy_is_independent_object():\n    \"\"\"A deep copy of a compound expression is a distinct object from the original.\"\"\"\n    expr = And(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result is not expr\n\n@given(expr_strategy)\ndef test_deepcopy_equals_original_for_any_expression(expr):\n    \"\"\"For any expression built from And, Or, Not and predicates, deepcopy succeeds and equals the original.\"\"\"\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert type(result) is type(expr)\n    assert str(result) == str(expr)\n\n@given(expr_strategy)\ndef test_deepcopy_hash_matches_original(expr):\n    \"\"\"A deep copy of any expression has the same hash as the original.\"\"\"\n    assert hash(copy.deepcopy(expr)) == hash(expr)",
+ "dropped_no_teeth": [
+  "test_deepcopy_inside_container",
+  "test_deepcopy_nested",
+  "test_deepcopy_with_always_true_false_children"
+ ],
+ "kept": [
+  "test_deepcopy_and_from_issue",
+  "test_deepcopy_equals_original_for_any_expression",
+  "test_deepcopy_hash_matches_original",
+  "test_deepcopy_is_independent_object",
+  "test_deepcopy_not",
+  "test_deepcopy_or"
+ ],
+ "cost_usd": 0.1465,
+ "rejected_at_approval": [],
+ "approved": "import copy\nfrom hypothesis import given, strategies as st\nfrom pyiceberg.expressions import And, AlwaysFalse, AlwaysTrue, EqualTo, GreaterThan, Not, Or\n\ndef _leaf(name, value):\n    return EqualTo(name, value)\nleaf_strategy = st.builds(lambda n, v: _leaf(n, v), st.sampled_from(['x', 'y', 'z', 'a']), st.integers(min_value=-1000, max_value=1000))\nexpr_strategy = st.recursive(leaf_strategy, lambda children: st.one_of(st.builds(lambda a, b: And(a, b), children, children), st.builds(lambda a, b: Or(a, b), children, children), st.builds(lambda a: Not(a), children)), max_leaves=8)\n\ndef test_deepcopy_and_from_issue():\n    \"\"\"Deep-copying And(EqualTo(\"x\", 1), EqualTo(\"y\", 2)) does not raise and gives an equal expression.\"\"\"\n    expr = And(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, And)\n\ndef test_deepcopy_or():\n    \"\"\"Deep-copying an Or expression does not raise and gives an equal expression.\"\"\"\n    expr = Or(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Or)\n\ndef test_deepcopy_not():\n    \"\"\"Deep-copying a Not expression does not raise and gives an equal expression.\"\"\"\n    expr = Not(EqualTo('x', 1))\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert isinstance(result, Not)\n\ndef test_deepcopy_is_independent_object():\n    \"\"\"A deep copy of a compound expression is a distinct object from the original.\"\"\"\n    expr = And(EqualTo('x', 1), EqualTo('y', 2))\n    result = copy.deepcopy(expr)\n    assert result is not expr\n\n@given(expr_strategy)\ndef test_deepcopy_equals_original_for_any_expression(expr):\n    \"\"\"For any expression built from And, Or, Not and predicates, deepcopy succeeds and equals the original.\"\"\"\n    result = copy.deepcopy(expr)\n    assert result == expr\n    assert type(result) is type(expr)\n    assert str(result) == str(expr)\n\n@given(expr_strategy)\ndef test_deepcopy_hash_matches_original(expr):\n    \"\"\"A deep copy of any expression has the same hash as the original.\"\"\"\n    assert hash(copy.deepcopy(expr)) == hash(expr)",
+ "approved_count": 6
+}

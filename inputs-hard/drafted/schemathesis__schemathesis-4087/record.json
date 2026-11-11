@@ -1,0 +1,99 @@
+{
+ "task": "schemathesis__schemathesis-4087",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "For query parameters (and other non-body locations), how should an additionalProperties violation be treated?",
+   "choices": [
+    "Never generate it as a negative case for query/headers/cookies",
+    "Still generate it, but don't flag a 2xx as a failure",
+    "Make it configurable (option or config setting)",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Where should the fix apply?",
+   "choices": [
+    "Only the coverage phase (unknown-property mutation)",
+    "Coverage phase and the fuzzing negative-data generation",
+    "All negative testing everywhere, including request bodies",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen to bodies with additionalProperties: false?",
+   "choices": [
+    "Unchanged: still generate and check them",
+    "Also skip them by default",
+    "Skip only when a setting is on",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If a negative case violates only additionalProperties, how should it be handled?",
+   "choices": [
+    "Don't generate it at all",
+    "Generate it but exclude it from the negative_data_rejection check",
+    "Generate it and report it as a warning rather than a failure",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the weird empty-name query like `?=false` and the x-schemathesis-unknown-property key be handled?",
+   "choices": [
+    "Leave as is; the only change is not treating these as violations",
+    "Stop generating empty or garbage key names",
+    "Use a more realistic random key name",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "For query parameters (and other non-body locations), how should an additionalProperties violation be treated?",
+   "choice": "Still generate it, but don't flag a 2xx as a failure"
+  },
+  {
+   "q": "Where should the fix apply?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should happen to bodies with additionalProperties: false?",
+   "choice": "Unchanged: still generate and check them"
+  },
+  {
+   "q": "If a negative case violates only additionalProperties, how should it be handled?",
+   "choice": "Generate it but exclude it from the negative_data_rejection check"
+  },
+  {
+   "q": "How should the weird empty-name query like `?=false` and the x-schemathesis-unknown-property key be handled?",
+   "choice": "Leave as is; the only change is not treating these as violations"
+  }
+ ],
+ "drafted": "import pytest\nimport requests\nfrom hypothesis import HealthCheck, given, settings, strategies as st\n\nimport schemathesis\nfrom schemathesis import GenerationMode\nfrom schemathesis.checks import CheckContext\nfrom schemathesis.config import ChecksConfig\nfrom schemathesis.core.transport import Response\nfrom schemathesis.specs.openapi.checks import negative_data_rejection\n\n\ndef _schema(query_schema, body_schema=None):\n    operation = {\n        \"parameters\": [\n            {\n                \"name\": \"q\",\n                \"in\": \"query\",\n                \"required\": False,\n                \"schema\": {\"type\": \"integer\"},\n            }\n        ]\n        if query_schema is None\n        else [],\n        \"responses\": {\"200\": {\"description\": \"OK\"}},\n    }\n    if query_schema is not None:\n        operation[\"parameters\"] = [\n            {\"name\": name, \"in\": \"query\", \"required\": True, \"schema\": s}\n            for name, s in query_schema.items()\n        ]\n    if body_schema is not None:\n        operation[\"requestBody\"] = {\n            \"required\": True,\n            \"content\": {\"application/json\": {\"schema\": body_schema}},\n        }\n    return schemathesis.openapi.from_dict(\n        {\n            \"openapi\": \"3.1.0\",\n            \"info\": {\"title\": \"t\", \"version\": \"1\"},\n            \"paths\": {\"/items\": {\"post\" if body_schema is not None else \"get\": operation}},\n        }\n    )\n\n\ndef _response(case, status):\n    raw = requests.Response()\n    raw.status_code = status\n    raw._content = b\"{}\"\n    raw.headers[\"Content-Type\"] = \"application/json\"\n    raw.request = requests.Request(method=\"GET\", url=\"http://127.0.0.1/items\").prepare()\n    raw.elapsed = __import__(\"datetime\").timedelta(milliseconds=1)\n    return Response.from_requests(raw, True)\n\n\ndef _ctx():\n    return CheckContext(\n        override=None,\n        auth=None,\n        headers=None,\n        config=ChecksConfig(),\n        transport_kwargs=None,\n    )\n\n\ndef _negative_cases(schema, method, limit=60):\n    op = schema[\"/items\"][method]\n    cases = []\n\n    @given(case=op.as_strategy(generation_mode=GenerationMode.NEGATIVE))\n    @settings(max_examples=limit, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n    def collect(case):\n        cases.append(case)\n\n    try:\n        collect()\n    except Exception:\n        pass\n    return cases\n\n\ndef _passes(case, status):\n    try:\n        negative_data_rejection(_ctx(), _response(case, status), case)\n    except AssertionError:\n        return False\n    return True\n\n\nQUERY_SCHEMA = {\"id\": {\"type\": \"integer\"}}\n\n\ndef test_query_additional_properties_violation_is_still_generated():\n    \"\"\"Negative query cases that only add extra properties to a query with additionalProperties false are still generated.\"\"\"\n    schema = _schema(\n        {\"id\": {\"type\": \"integer\"}}\n    )\n    cases = _negative_cases(schema, \"get\", 200)\n    assert cases\n\n\ndef test_2xx_on_query_only_additional_properties_violation_is_not_a_failure():\n    \"\"\"A 2xx response to a request violating only the query additionalProperties is not reported as accepted invalid data.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, \"get\", 300)\n    extra = [\n        c\n        for c in cases\n        if c.query is not None and isinstance(c.query, dict) and set(c.query) - {\"id\"} and isinstance(c.query.get(\"id\"), int)\n    ]\n    for case in extra:\n        assert _passes(case, 200)\n\n\n@settings(max_examples=20, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n@given(status=st.sampled_from([200, 201, 204]))\ndef test_any_2xx_for_query_extra_property_only_violation_passes(status):\n    \"\"\"For every 2xx status, a request that violates only query additionalProperties passes the negative data rejection check.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, \"get\", 100)\n    for case in cases:\n        if isinstance(case.query, dict) and set(case.query) - {\"id\"} and isinstance(case.query.get(\"id\"), int):\n            assert _passes(case, status)\n\n\ndef test_body_additional_properties_violation_still_checked():\n    \"\"\"A 2xx response to a body that violates additionalProperties false is still reported as accepted invalid data.\"\"\"\n    schema = _schema(\n        None,\n        {\n            \"type\": \"object\",\n            \"properties\": {\"a\": {\"type\": \"integer\"}},\n            \"required\": [\"a\"],\n            \"additionalProperties\": False,\n        },\n    )\n    cases = _negative_cases(schema, \"post\", 300)\n    extra = [\n        c\n        for c in cases\n        if isinstance(c.body, dict) and isinstance(c.body.get(\"a\"), int) and set(c.body) - {\"a\"}\n    ]\n    assert extra, \"bodies with extra properties must still be generated\"\n    assert any(not _passes(c, 200) for c in extra)\n",
+ "cost_usd": 0.0977,
+ "passing_on_baseline": [
+  "test_2xx_on_query_only_additional_properties_violation_is_not_a_failure",
+  "test_any_2xx_for_query_extra_property_only_violation_passes",
+  "test_body_additional_properties_violation_still_checked",
+  "test_query_additional_properties_violation_is_still_generated"
+ ],
+ "passing_on_fix": [
+  "test_2xx_on_query_only_additional_properties_violation_is_not_a_failure",
+  "test_any_2xx_for_query_extra_property_only_violation_passes",
+  "test_query_additional_properties_violation_is_still_generated"
+ ],
+ "rules": "import pytest\nimport requests\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nimport schemathesis\nfrom schemathesis import GenerationMode\nfrom schemathesis.checks import CheckContext\nfrom schemathesis.config import ChecksConfig\nfrom schemathesis.core.transport import Response\nfrom schemathesis.specs.openapi.checks import negative_data_rejection\n\ndef _schema(query_schema, body_schema=None):\n    operation = {'parameters': [{'name': 'q', 'in': 'query', 'required': False, 'schema': {'type': 'integer'}}] if query_schema is None else [], 'responses': {'200': {'description': 'OK'}}}\n    if query_schema is not None:\n        operation['parameters'] = [{'name': name, 'in': 'query', 'required': True, 'schema': s} for name, s in query_schema.items()]\n    if body_schema is not None:\n        operation['requestBody'] = {'required': True, 'content': {'application/json': {'schema': body_schema}}}\n    return schemathesis.openapi.from_dict({'openapi': '3.1.0', 'info': {'title': 't', 'version': '1'}, 'paths': {'/items': {'post' if body_schema is not None else 'get': operation}}})\n\ndef _response(case, status):\n    raw = requests.Response()\n    raw.status_code = status\n    raw._content = b'{}'\n    raw.headers['Content-Type'] = 'application/json'\n    raw.request = requests.Request(method='GET', url='http://127.0.0.1/items').prepare()\n    raw.elapsed = __import__('datetime').timedelta(milliseconds=1)\n    return Response.from_requests(raw, True)\n\ndef _ctx():\n    return CheckContext(override=None, auth=None, headers=None, config=ChecksConfig(), transport_kwargs=None)\n\ndef _negative_cases(schema, method, limit=60):\n    op = schema['/items'][method]\n    cases = []\n\n    @given(case=op.as_strategy(generation_mode=GenerationMode.NEGATIVE))\n    @settings(max_examples=limit, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n    def collect(case):\n        cases.append(case)\n    try:\n        collect()\n    except Exception:\n        pass\n    return cases\n\ndef _passes(case, status):\n    try:\n        negative_data_rejection(_ctx(), _response(case, status), case)\n    except AssertionError:\n        return False\n    return True\nQUERY_SCHEMA = {'id': {'type': 'integer'}}\n\ndef test_query_additional_properties_violation_is_still_generated():\n    \"\"\"Negative query cases that only add extra properties to a query with additionalProperties false are still generated.\"\"\"\n    schema = _schema({'id': {'type': 'integer'}})\n    cases = _negative_cases(schema, 'get', 200)\n    assert cases\n\ndef test_2xx_on_query_only_additional_properties_violation_is_not_a_failure():\n    \"\"\"A 2xx response to a request violating only the query additionalProperties is not reported as accepted invalid data.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, 'get', 300)\n    extra = [c for c in cases if c.query is not None and isinstance(c.query, dict) and set(c.query) - {'id'} and isinstance(c.query.get('id'), int)]\n    for case in extra:\n        assert _passes(case, 200)\n\n@settings(max_examples=20, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n@given(status=st.sampled_from([200, 201, 204]))\ndef test_any_2xx_for_query_extra_property_only_violation_passes(status):\n    \"\"\"For every 2xx status, a request that violates only query additionalProperties passes the negative data rejection check.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, 'get', 100)\n    for case in cases:\n        if isinstance(case.query, dict) and set(case.query) - {'id'} and isinstance(case.query.get('id'), int):\n            assert _passes(case, status)\n\ndef test_body_additional_properties_violation_still_checked():\n    \"\"\"A 2xx response to a body that violates additionalProperties false is still reported as accepted invalid data.\"\"\"\n    schema = _schema(None, {'type': 'object', 'properties': {'a': {'type': 'integer'}}, 'required': ['a'], 'additionalProperties': False})\n    cases = _negative_cases(schema, 'post', 300)\n    extra = [c for c in cases if isinstance(c.body, dict) and isinstance(c.body.get('a'), int) and set(c.body) - {'a'}]\n    assert extra, 'bodies with extra properties must still be generated'\n    assert any((not _passes(c, 200) for c in extra))",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_2xx_on_query_only_additional_properties_violation_is_not_a_failure",
+  "test_any_2xx_for_query_extra_property_only_violation_passes",
+  "test_body_additional_properties_violation_still_checked",
+  "test_query_additional_properties_violation_is_still_generated"
+ ],
+ "rejected_at_approval": [
+  "test_body_additional_properties_violation_still_checked"
+ ],
+ "approved": "import pytest\nimport requests\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nimport schemathesis\nfrom schemathesis import GenerationMode\nfrom schemathesis.checks import CheckContext\nfrom schemathesis.config import ChecksConfig\nfrom schemathesis.core.transport import Response\nfrom schemathesis.specs.openapi.checks import negative_data_rejection\n\ndef _schema(query_schema, body_schema=None):\n    operation = {'parameters': [{'name': 'q', 'in': 'query', 'required': False, 'schema': {'type': 'integer'}}] if query_schema is None else [], 'responses': {'200': {'description': 'OK'}}}\n    if query_schema is not None:\n        operation['parameters'] = [{'name': name, 'in': 'query', 'required': True, 'schema': s} for name, s in query_schema.items()]\n    if body_schema is not None:\n        operation['requestBody'] = {'required': True, 'content': {'application/json': {'schema': body_schema}}}\n    return schemathesis.openapi.from_dict({'openapi': '3.1.0', 'info': {'title': 't', 'version': '1'}, 'paths': {'/items': {'post' if body_schema is not None else 'get': operation}}})\n\ndef _response(case, status):\n    raw = requests.Response()\n    raw.status_code = status\n    raw._content = b'{}'\n    raw.headers['Content-Type'] = 'application/json'\n    raw.request = requests.Request(method='GET', url='http://127.0.0.1/items').prepare()\n    raw.elapsed = __import__('datetime').timedelta(milliseconds=1)\n    return Response.from_requests(raw, True)\n\ndef _ctx():\n    return CheckContext(override=None, auth=None, headers=None, config=ChecksConfig(), transport_kwargs=None)\n\ndef _negative_cases(schema, method, limit=60):\n    op = schema['/items'][method]\n    cases = []\n\n    @given(case=op.as_strategy(generation_mode=GenerationMode.NEGATIVE))\n    @settings(max_examples=limit, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n    def collect(case):\n        cases.append(case)\n    try:\n        collect()\n    except Exception:\n        pass\n    return cases\n\ndef _passes(case, status):\n    try:\n        negative_data_rejection(_ctx(), _response(case, status), case)\n    except AssertionError:\n        return False\n    return True\nQUERY_SCHEMA = {'id': {'type': 'integer'}}\n\ndef test_query_additional_properties_violation_is_still_generated():\n    \"\"\"Negative query cases that only add extra properties to a query with additionalProperties false are still generated.\"\"\"\n    schema = _schema({'id': {'type': 'integer'}})\n    cases = _negative_cases(schema, 'get', 200)\n    assert cases\n\ndef test_2xx_on_query_only_additional_properties_violation_is_not_a_failure():\n    \"\"\"A 2xx response to a request violating only the query additionalProperties is not reported as accepted invalid data.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, 'get', 300)\n    extra = [c for c in cases if c.query is not None and isinstance(c.query, dict) and set(c.query) - {'id'} and isinstance(c.query.get('id'), int)]\n    for case in extra:\n        assert _passes(case, 200)\n\n@settings(max_examples=20, deadline=None, suppress_health_check=list(HealthCheck), database=None)\n@given(status=st.sampled_from([200, 201, 204]))\ndef test_any_2xx_for_query_extra_property_only_violation_passes(status):\n    \"\"\"For every 2xx status, a request that violates only query additionalProperties passes the negative data rejection check.\"\"\"\n    schema = _schema(QUERY_SCHEMA)\n    cases = _negative_cases(schema, 'get', 100)\n    for case in cases:\n        if isinstance(case.query, dict) and set(case.query) - {'id'} and isinstance(case.query.get('id'), int):\n            assert _passes(case, status)",
+ "approved_count": 3
+}

@@ -1,0 +1,105 @@
+{
+ "task": "databricks__dbt-databricks-1428",
+ "passing_on_baseline": [
+  "test_empty_result_merges_with_populated_result",
+  "test_empty_result_string_metadata_columns_are_text",
+  "test_empty_schema_result_has_zero_rows",
+  "test_populated_result_string_metadata_columns_are_text"
+ ],
+ "passing_on_fix": [
+  "test_empty_result_merges_with_populated_result",
+  "test_empty_result_string_metadata_columns_are_text",
+  "test_empty_schema_result_has_zero_rows",
+  "test_numeric_looking_strings_in_text_columns_stay_text",
+  "test_populated_result_string_metadata_columns_are_text"
+ ],
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Which columns should be forced to Text when the result is empty or sparse?",
+   "choices": [
+    "Only the string metadata columns (table_database, table_schema, table_name, table_type, table_comment, table_owner, column_name, column_type, column_comment)",
+    "Same as the base adapter's text_only_columns list, whatever it contains",
+    "Only column_name and column_type, the ones named in the bug",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the empty table get its column names? Today Table.from_object([]) has zero columns.",
+   "choices": [
+    "Return an empty table that still has the full catalog column names, all typed correctly",
+    "Keep it with zero columns and skip it before merging",
+    "Do both: give it the full columns and also skip empty tables when merging",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen with numeric catalog columns such as column_index and the stats:* values?",
+   "choices": [
+    "Keep type inference for them and force Text only on the metadata columns",
+    "Give every catalog column an explicit type, with column_index as Number",
+    "Leave them as they are now",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the fix be wired into the catalog pipeline?",
+   "choices": [
+    "Change the table built inside _get_schema_for_catalog directly",
+    "Route the result through the base adapter's _catalog_filter_table",
+    "Add a shared helper that both paths use",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should the existing unit test test_get_schema_for_catalog__no_columns and the new coverage check?",
+   "choices": [
+    "Empty and non-empty tables merge with agate.Table.merge without error, plus the column types on the empty table",
+    "Only the column names and types of the empty table",
+    "A functional test that runs docs generate with an empty schema",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Which columns should be forced to Text when the result is empty or sparse?",
+   "choice": "Only the string metadata columns (table_database, table_schema, table_name, table_type, table_comment, table_owner, column_name, column_type, column_comment)"
+  },
+  {
+   "q": "How should the empty table get its column names? Today Table.from_object([]) has zero columns.",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should happen with numeric catalog columns such as column_index and the stats:* values?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should the fix be wired into the catalog pipeline?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What should the existing unit test test_get_schema_for_catalog__no_columns and the new coverage check?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import pytest\nfrom multiprocessing import get_context\nfrom unittest.mock import Mock, patch\n\nimport agate\nfrom hypothesis import given, settings, strategies as st\n\nfrom dbt.adapters.databricks.impl import DatabricksAdapter\n\nTEXT_COLUMNS = [\n    \"table_database\",\n    \"table_schema\",\n    \"table_name\",\n    \"table_type\",\n    \"table_comment\",\n    \"table_owner\",\n    \"column_name\",\n    \"column_type\",\n    \"column_comment\",\n]\n\n\ndef _row(name=\"c\", comment=\"x\", index=0):\n    return {\n        \"table_database\": \"db\",\n        \"table_schema\": \"sch\",\n        \"table_name\": \"tbl\",\n        \"table_type\": \"table\",\n        \"table_comment\": comment,\n        \"table_owner\": \"root\",\n        \"column_name\": name,\n        \"column_index\": index,\n        \"column_type\": \"string\",\n        \"column_comment\": comment,\n    }\n\n\ndef _schema_table(rows):\n    with patch(\"dbt.adapters.databricks.api_client.DatabricksApiClient\"):\n        with patch.object(DatabricksAdapter, \"_list_relations_with_information\") as li:\n            li.return_value = [(Mock(), \"info\")]\n            with patch.object(DatabricksAdapter, \"_get_columns_for_catalog\") as gc:\n                gc.return_value = rows\n                adapter = DatabricksAdapter(Mock(flags={}), get_context(\"spawn\"))\n                return adapter._get_schema_for_catalog(\"database\", \"schema\", \"name\")\n\n\ndef _assert_text(table):\n    for name in TEXT_COLUMNS:\n        if name in table.column_names:\n            assert isinstance(table.columns[name].data_type, agate.Text)\n\n\ndef test_empty_schema_result_has_zero_rows():\n    \"\"\"A schema that returns no columns yields a table with zero rows.\"\"\"\n    assert len(_schema_table([]).rows) == 0\n\n\ndef test_empty_result_merges_with_populated_result():\n    \"\"\"Merging an empty schema result with a populated one does not raise a type conflict.\"\"\"\n    empty = _schema_table([])\n    populated = _schema_table([_row()])\n    merged = agate.Table.merge([populated, empty])\n    assert len(merged.rows) == 1\n    merged = agate.Table.merge([empty, populated])\n    assert len(merged.rows) == 1\n\n\ndef test_empty_result_string_metadata_columns_are_text():\n    \"\"\"In an empty result, any string metadata column that is present is typed Text.\"\"\"\n    _assert_text(_schema_table([]))\n\n\ndef test_populated_result_string_metadata_columns_are_text():\n    \"\"\"In a populated result, the string metadata columns are typed Text.\"\"\"\n    table = _schema_table([_row()])\n    assert \"column_name\" in table.column_names\n    _assert_text(table)\n\n\ndef test_all_null_metadata_values_still_text():\n    \"\"\"String metadata columns whose values are all null are still typed Text.\"\"\"\n    table = _schema_table([_row(comment=None)])\n    _assert_text(table)\n\n\ndef test_numeric_looking_strings_in_text_columns_stay_text():\n    \"\"\"Metadata columns holding numeric-looking strings keep their text values.\"\"\"\n    table = _schema_table([_row(name=\"123\")])\n    _assert_text(table)\n    assert table.rows[0][\"column_name\"] == \"123\"\n\n\n@settings(max_examples=30, deadline=None)\n@given(\n    names=st.lists(\n        st.one_of(st.text(max_size=8), st.integers(0, 999).map(str), st.none()),\n        max_size=5,\n    ),\n    comment=st.one_of(st.none(), st.text(max_size=8)),\n)\ndef test_text_columns_are_text_for_any_input_and_merge_with_empty(names, comment):\n    \"\"\"For any rows, string metadata columns are Text and the result merges with an empty one.\"\"\"\n    rows = [_row(name=n, comment=comment, index=i) for i, n in enumerate(names)]\n    table = _schema_table(rows)\n    _assert_text(table)\n    empty = _schema_table([])\n    merged = agate.Table.merge([table, empty])\n    assert len(merged.rows) == len(rows)\n    merged = agate.Table.merge([empty, table])\n    assert len(merged.rows) == len(rows)\n",
+ "rules": "import pytest\nfrom multiprocessing import get_context\nfrom unittest.mock import Mock, patch\nimport agate\nfrom hypothesis import given, settings, strategies as st\nfrom dbt.adapters.databricks.impl import DatabricksAdapter\nTEXT_COLUMNS = ['table_database', 'table_schema', 'table_name', 'table_type', 'table_comment', 'table_owner', 'column_name', 'column_type', 'column_comment']\n\ndef _row(name='c', comment='x', index=0):\n    return {'table_database': 'db', 'table_schema': 'sch', 'table_name': 'tbl', 'table_type': 'table', 'table_comment': comment, 'table_owner': 'root', 'column_name': name, 'column_index': index, 'column_type': 'string', 'column_comment': comment}\n\ndef _schema_table(rows):\n    with patch('dbt.adapters.databricks.api_client.DatabricksApiClient'):\n        with patch.object(DatabricksAdapter, '_list_relations_with_information') as li:\n            li.return_value = [(Mock(), 'info')]\n            with patch.object(DatabricksAdapter, '_get_columns_for_catalog') as gc:\n                gc.return_value = rows\n                adapter = DatabricksAdapter(Mock(flags={}), get_context('spawn'))\n                return adapter._get_schema_for_catalog('database', 'schema', 'name')\n\ndef _assert_text(table):\n    for name in TEXT_COLUMNS:\n        if name in table.column_names:\n            assert isinstance(table.columns[name].data_type, agate.Text)\n\ndef test_empty_schema_result_has_zero_rows():\n    \"\"\"A schema that returns no columns yields a table with zero rows.\"\"\"\n    assert len(_schema_table([]).rows) == 0\n\ndef test_empty_result_merges_with_populated_result():\n    \"\"\"Merging an empty schema result with a populated one does not raise a type conflict.\"\"\"\n    empty = _schema_table([])\n    populated = _schema_table([_row()])\n    merged = agate.Table.merge([populated, empty])\n    assert len(merged.rows) == 1\n    merged = agate.Table.merge([empty, populated])\n    assert len(merged.rows) == 1\n\ndef test_empty_result_string_metadata_columns_are_text():\n    \"\"\"In an empty result, any string metadata column that is present is typed Text.\"\"\"\n    _assert_text(_schema_table([]))\n\ndef test_populated_result_string_metadata_columns_are_text():\n    \"\"\"In a populated result, the string metadata columns are typed Text.\"\"\"\n    table = _schema_table([_row()])\n    assert 'column_name' in table.column_names\n    _assert_text(table)\n\ndef test_all_null_metadata_values_still_text():\n    \"\"\"String metadata columns whose values are all null are still typed Text.\"\"\"\n    table = _schema_table([_row(comment=None)])\n    _assert_text(table)\n\ndef test_numeric_looking_strings_in_text_columns_stay_text():\n    \"\"\"Metadata columns holding numeric-looking strings keep their text values.\"\"\"\n    table = _schema_table([_row(name='123')])\n    _assert_text(table)\n    assert table.rows[0]['column_name'] == '123'\n\n@settings(max_examples=30, deadline=None)\n@given(names=st.lists(st.one_of(st.text(max_size=8), st.integers(0, 999).map(str), st.none()), max_size=5), comment=st.one_of(st.none(), st.text(max_size=8)))\ndef test_text_columns_are_text_for_any_input_and_merge_with_empty(names, comment):\n    \"\"\"For any rows, string metadata columns are Text and the result merges with an empty one.\"\"\"\n    rows = [_row(name=n, comment=comment, index=i) for i, n in enumerate(names)]\n    table = _schema_table(rows)\n    _assert_text(table)\n    empty = _schema_table([])\n    merged = agate.Table.merge([table, empty])\n    assert len(merged.rows) == len(rows)\n    merged = agate.Table.merge([empty, table])\n    assert len(merged.rows) == len(rows)",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_all_null_metadata_values_still_text",
+  "test_empty_result_merges_with_populated_result",
+  "test_empty_result_string_metadata_columns_are_text",
+  "test_empty_schema_result_has_zero_rows",
+  "test_numeric_looking_strings_in_text_columns_stay_text",
+  "test_populated_result_string_metadata_columns_are_text",
+  "test_text_columns_are_text_for_any_input_and_merge_with_empty"
+ ],
+ "cost_usd": 0.2291,
+ "rejected_at_approval": [
+  "test_all_null_metadata_values_still_text",
+  "test_text_columns_are_text_for_any_input_and_merge_with_empty"
+ ],
+ "approved": "import pytest\nfrom multiprocessing import get_context\nfrom unittest.mock import Mock, patch\nimport agate\nfrom hypothesis import given, settings, strategies as st\nfrom dbt.adapters.databricks.impl import DatabricksAdapter\nTEXT_COLUMNS = ['table_database', 'table_schema', 'table_name', 'table_type', 'table_comment', 'table_owner', 'column_name', 'column_type', 'column_comment']\n\ndef _row(name='c', comment='x', index=0):\n    return {'table_database': 'db', 'table_schema': 'sch', 'table_name': 'tbl', 'table_type': 'table', 'table_comment': comment, 'table_owner': 'root', 'column_name': name, 'column_index': index, 'column_type': 'string', 'column_comment': comment}\n\ndef _schema_table(rows):\n    with patch('dbt.adapters.databricks.api_client.DatabricksApiClient'):\n        with patch.object(DatabricksAdapter, '_list_relations_with_information') as li:\n            li.return_value = [(Mock(), 'info')]\n            with patch.object(DatabricksAdapter, '_get_columns_for_catalog') as gc:\n                gc.return_value = rows\n                adapter = DatabricksAdapter(Mock(flags={}), get_context('spawn'))\n                return adapter._get_schema_for_catalog('database', 'schema', 'name')\n\ndef _assert_text(table):\n    for name in TEXT_COLUMNS:\n        if name in table.column_names:\n            assert isinstance(table.columns[name].data_type, agate.Text)\n\ndef test_empty_schema_result_has_zero_rows():\n    \"\"\"A schema that returns no columns yields a table with zero rows.\"\"\"\n    assert len(_schema_table([]).rows) == 0\n\ndef test_empty_result_merges_with_populated_result():\n    \"\"\"Merging an empty schema result with a populated one does not raise a type conflict.\"\"\"\n    empty = _schema_table([])\n    populated = _schema_table([_row()])\n    merged = agate.Table.merge([populated, empty])\n    assert len(merged.rows) == 1\n    merged = agate.Table.merge([empty, populated])\n    assert len(merged.rows) == 1\n\ndef test_empty_result_string_metadata_columns_are_text():\n    \"\"\"In an empty result, any string metadata column that is present is typed Text.\"\"\"\n    _assert_text(_schema_table([]))\n\ndef test_populated_result_string_metadata_columns_are_text():\n    \"\"\"In a populated result, the string metadata columns are typed Text.\"\"\"\n    table = _schema_table([_row()])\n    assert 'column_name' in table.column_names\n    _assert_text(table)\n\ndef test_numeric_looking_strings_in_text_columns_stay_text():\n    \"\"\"Metadata columns holding numeric-looking strings keep their text values.\"\"\"\n    table = _schema_table([_row(name='123')])\n    _assert_text(table)\n    assert table.rows[0]['column_name'] == '123'",
+ "approved_count": 5
+}

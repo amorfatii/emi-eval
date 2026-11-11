@@ -1,0 +1,87 @@
+{
+ "task": "nesquena__hermes-webui-2056",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Where should the fix go?",
+   "choices": [
+    "Only make the host:port detection tolerant of decorated slugs, leaving the slug transform alone",
+    "Only change how slugs are built from names, in every place that builds them",
+    "Both",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Existing configs already have names like 'Local (127.0.0.1:15721)'. If the slug transform changes, what happens to saved model strings like '@custom:local-(127.0.0.1:15721):model'?",
+   "choices": [
+    "They must still resolve, so the old slug form keeps working",
+    "Existing configs can break, since users can rename the entry",
+    "Match either the old or the new slug form when looking up the provider",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the slug sanitizer treat characters in the name?",
+   "choices": [
+    "Strip only brackets: ( ) [ ] { }",
+    "Replace every non-alphanumeric character except '.', '-' and '_' with '-'",
+    "Keep ':' out of the slug entirely, whatever else is stripped",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "For a slug like 'custom:local-(127.0.0.1:15721)' with no model suffix, or one that ends in ':free', how should the over-split check behave?",
+   "choices": [
+    "Treat a trailing ':<port>)' or ':<port>' inside the slug as part of the slug, and still peel a real suffix such as ':free'",
+    "Never peel a colon that sits inside parentheses",
+    "Only handle the parenthesized host:port case",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Where should the fix go?",
+   "choice": "Both"
+  },
+  {
+   "q": "Existing configs already have names like 'Local (127.0.0.1:15721)'. If the slug transform changes, what happens to saved model strings like '@custom:local-(127.0.0.1:15721):model'?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should the slug sanitizer treat characters in the name?",
+   "choice": "Keep ':' out of the slug entirely, whatever else is stripped"
+  },
+  {
+   "q": "For a slug like 'custom:local-(127.0.0.1:15721)' with no model suffix, or one that ends in ':free', how should the over-split check behave?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import pytest\nfrom hypothesis import given, settings, strategies as st, HealthCheck\n\nfrom api import config\n\n\ndef _setup(monkeypatch, name, model=\"deepseek-v4-flash\",\n           base_url=\"http://127.0.0.1:15721/v1\"):\n    monkeypatch.setitem(config.cfg, \"model\", {})\n    monkeypatch.setitem(\n        config.cfg,\n        \"custom_providers\",\n        [{\"name\": name, \"base_url\": base_url, \"model\": model}],\n    )\n\n\ndef test_configured_model_with_parenthesised_port_name_keeps_model_intact(monkeypatch):\n    \"\"\"A custom provider named 'Local (127.0.0.1:15721)' resolves its model to 'deepseek-v4-flash' unchanged.\"\"\"\n    _setup(monkeypatch, \"Local (127.0.0.1:15721)\")\n    model, provider, base_url = config.resolve_model_provider(\"deepseek-v4-flash\")\n    assert model == \"deepseek-v4-flash\"\n    assert provider.startswith(\"custom:\")\n    assert base_url == \"http://127.0.0.1:15721/v1\"\n\n\ndef test_slug_for_parenthesised_port_name_has_no_colon_after_prefix(monkeypatch):\n    \"\"\"The provider slug generated from 'Local (127.0.0.1:15721)' contains no ':' beyond the 'custom:' prefix.\"\"\"\n    _setup(monkeypatch, \"Local (127.0.0.1:15721)\")\n    _, provider, _ = config.resolve_model_provider(\"deepseek-v4-flash\")\n    assert \":\" not in provider[len(\"custom:\"):]\n\n\ndef test_plain_name_slug_still_lowercased_and_dashed(monkeypatch):\n    \"\"\"A plain name like 'My Server' still yields the slug 'custom:my-server'.\"\"\"\n    _setup(monkeypatch, \"My Server\", model=\"m1\")\n    _, provider, _ = config.resolve_model_provider(\"m1\")\n    assert provider == \"custom:my-server\"\n\n\ndef test_at_format_with_paren_port_slug_does_not_corrupt_model(monkeypatch):\n    \"\"\"'@custom:local-(127.0.0.1:15721):deepseek-v4-flash' resolves to model 'deepseek-v4-flash', not '15721):deepseek-v4-flash'.\"\"\"\n    _setup(monkeypatch, \"Local (127.0.0.1:15721)\")\n    model, provider, _ = config.resolve_model_provider(\n        \"@custom:local-(127.0.0.1:15721):deepseek-v4-flash\"\n    )\n    assert model == \"deepseek-v4-flash\"\n    assert not model.startswith(\"15721\")\n\n\ndef test_at_format_with_sanitized_slug_resolves_model(monkeypatch):\n    \"\"\"'@custom:local-127.0.0.1-15721:deepseek-v4-flash' resolves to model 'deepseek-v4-flash' with that slug.\"\"\"\n    _setup(monkeypatch, \"Local (127.0.0.1:15721)\")\n    model, provider, _ = config.resolve_model_provider(\n        \"@custom:local-127.0.0.1-15721:deepseek-v4-flash\"\n    )\n    assert model == \"deepseek-v4-flash\"\n    assert provider == \"custom:local-127.0.0.1-15721\"\n\n\ndef test_at_format_host_port_slug_still_works(monkeypatch):\n    \"\"\"'@custom:10.8.71.41:8080:Qwen3' still resolves to model 'Qwen3'.\"\"\"\n    _setup(monkeypatch, \"unrelated\", model=\"zzz\")\n    model, provider, _ = config.resolve_model_provider(\"@custom:10.8.71.41:8080:Qwen3\")\n    assert model == \"Qwen3\"\n    assert provider == \"custom:10.8.71.41:8080\"\n\n\ndef test_at_format_custom_slug_with_free_suffix_still_peels(monkeypatch):\n    \"\"\"'@custom:my-key:some-model:free' still resolves to provider 'custom:my-key' and model 'some-model:free'.\"\"\"\n    _setup(monkeypatch, \"unrelated\", model=\"zzz\")\n    model, provider, _ = config.resolve_model_provider(\"@custom:my-key:some-model:free\")\n    assert model == \"some-model:free\"\n    assert provider == \"custom:my-key\"\n\n\n_names = st.text(\n    alphabet=st.sampled_from(list(\"abcXYZ019 ()[]{}.:-_/\")),\n    min_size=1,\n    max_size=30,\n).filter(lambda s: s.strip() != \"\")\n\n\n@settings(suppress_health_check=[HealthCheck.function_scoped_fixture], max_examples=100)\n@given(name=_names)\ndef test_slug_never_contains_colon_after_custom_prefix(monkeypatch, name):\n    \"\"\"For any custom provider name, the generated slug has no ':' after the 'custom:' prefix.\"\"\"\n    _setup(monkeypatch, name, model=\"some-model\")\n    model, provider, _ = config.resolve_model_provider(\"some-model\")\n    assert model == \"some-model\"\n    assert provider.startswith(\"custom:\")\n    assert \":\" not in provider[len(\"custom:\"):]\n\n\n@settings(suppress_health_check=[HealthCheck.function_scoped_fixture], max_examples=100)\n@given(\n    host=st.sampled_from([\"127.0.0.1\", \"localhost\", \"10.0.0.5\", \"example.com\"]),\n    port=st.integers(min_value=1, max_value=65535),\n    label=st.sampled_from([\"Local\", \"Proxy\", \"My Server\"]),\n)\ndef test_setup_style_name_roundtrips_model_through_at_format(monkeypatch, host, port, label):\n    \"\"\"For any 'Label (host:port)' name, the generated slug used in '@slug:model' resolves back to the bare model.\"\"\"\n    name = f\"{label} ({host}:{port})\"\n    _setup(monkeypatch, name, model=\"deepseek-v4-flash\")\n    _, provider, _ = config.resolve_model_provider(\"deepseek-v4-flash\")\n    model, prov2, _ = config.resolve_model_provider(f\"@{provider}:deepseek-v4-flash\")\n    assert model == \"deepseek-v4-flash\"\n    assert prov2 == provider\n    # the legacy un-sanitized form must not corrupt the model either\n    legacy = f\"@custom:{label.lower().replace(' ', '-')}-({host}:{port}):deepseek-v4-flash\"\n    model3, _, _ = config.resolve_model_provider(legacy)\n    assert model3 == \"deepseek-v4-flash\"\n",
+ "cost_usd": 0.1356,
+ "passing_on_baseline": [],
+ "passing_on_fix": [
+  "test_slug_for_parenthesised_port_name_has_no_colon_after_prefix"
+ ],
+ "rules": "import pytest\nfrom hypothesis import given, settings, strategies as st, HealthCheck\nfrom api import config\n\ndef _setup(monkeypatch, name, model='deepseek-v4-flash', base_url='http://127.0.0.1:15721/v1'):\n    monkeypatch.setitem(config.cfg, 'model', {})\n    monkeypatch.setitem(config.cfg, 'custom_providers', [{'name': name, 'base_url': base_url, 'model': model}])\n\ndef test_slug_for_parenthesised_port_name_has_no_colon_after_prefix(monkeypatch):\n    \"\"\"The provider slug generated from 'Local (127.0.0.1:15721)' contains no ':' beyond the 'custom:' prefix.\"\"\"\n    _setup(monkeypatch, 'Local (127.0.0.1:15721)')\n    _, provider, _ = config.resolve_model_provider('deepseek-v4-flash')\n    assert ':' not in provider[len('custom:'):]\n\ndef test_at_format_with_paren_port_slug_does_not_corrupt_model(monkeypatch):\n    \"\"\"'@custom:local-(127.0.0.1:15721):deepseek-v4-flash' resolves to model 'deepseek-v4-flash', not '15721):deepseek-v4-flash'.\"\"\"\n    _setup(monkeypatch, 'Local (127.0.0.1:15721)')\n    model, provider, _ = config.resolve_model_provider('@custom:local-(127.0.0.1:15721):deepseek-v4-flash')\n    assert model == 'deepseek-v4-flash'\n    assert not model.startswith('15721')\n_names = st.text(alphabet=st.sampled_from(list('abcXYZ019 ()[]{}.:-_/')), min_size=1, max_size=30).filter(lambda s: s.strip() != '')\n\n@settings(suppress_health_check=[HealthCheck.function_scoped_fixture], max_examples=100)\n@given(name=_names)\ndef test_slug_never_contains_colon_after_custom_prefix(monkeypatch, name):\n    \"\"\"For any custom provider name, the generated slug has no ':' after the 'custom:' prefix.\"\"\"\n    _setup(monkeypatch, name, model='some-model')\n    model, provider, _ = config.resolve_model_provider('some-model')\n    assert model == 'some-model'\n    assert provider.startswith('custom:')\n    assert ':' not in provider[len('custom:'):]\n\n@settings(suppress_health_check=[HealthCheck.function_scoped_fixture], max_examples=100)\n@given(host=st.sampled_from(['127.0.0.1', 'localhost', '10.0.0.5', 'example.com']), port=st.integers(min_value=1, max_value=65535), label=st.sampled_from(['Local', 'Proxy', 'My Server']))\ndef test_setup_style_name_roundtrips_model_through_at_format(monkeypatch, host, port, label):\n    \"\"\"For any 'Label (host:port)' name, the generated slug used in '@slug:model' resolves back to the bare model.\"\"\"\n    name = f'{label} ({host}:{port})'\n    _setup(monkeypatch, name, model='deepseek-v4-flash')\n    _, provider, _ = config.resolve_model_provider('deepseek-v4-flash')\n    model, prov2, _ = config.resolve_model_provider(f'@{provider}:deepseek-v4-flash')\n    assert model == 'deepseek-v4-flash'\n    assert prov2 == provider\n    legacy = f\"@custom:{label.lower().replace(' ', '-')}-({host}:{port}):deepseek-v4-flash\"\n    model3, _, _ = config.resolve_model_provider(legacy)\n    assert model3 == 'deepseek-v4-flash'",
+ "dropped_no_teeth": [
+  "test_at_format_custom_slug_with_free_suffix_still_peels",
+  "test_at_format_host_port_slug_still_works",
+  "test_at_format_with_sanitized_slug_resolves_model",
+  "test_configured_model_with_parenthesised_port_name_keeps_model_intact",
+  "test_plain_name_slug_still_lowercased_and_dashed"
+ ],
+ "kept": [
+  "test_at_format_with_paren_port_slug_does_not_corrupt_model",
+  "test_setup_style_name_roundtrips_model_through_at_format",
+  "test_slug_for_parenthesised_port_name_has_no_colon_after_prefix",
+  "test_slug_never_contains_colon_after_custom_prefix"
+ ],
+ "rejected_at_approval": [
+  "test_at_format_with_paren_port_slug_does_not_corrupt_model",
+  "test_setup_style_name_roundtrips_model_through_at_format",
+  "test_slug_never_contains_colon_after_custom_prefix"
+ ],
+ "approved": "import pytest\nfrom hypothesis import given, settings, strategies as st, HealthCheck\nfrom api import config\n\ndef _setup(monkeypatch, name, model='deepseek-v4-flash', base_url='http://127.0.0.1:15721/v1'):\n    monkeypatch.setitem(config.cfg, 'model', {})\n    monkeypatch.setitem(config.cfg, 'custom_providers', [{'name': name, 'base_url': base_url, 'model': model}])\n\ndef test_slug_for_parenthesised_port_name_has_no_colon_after_prefix(monkeypatch):\n    \"\"\"The provider slug generated from 'Local (127.0.0.1:15721)' contains no ':' beyond the 'custom:' prefix.\"\"\"\n    _setup(monkeypatch, 'Local (127.0.0.1:15721)')\n    _, provider, _ = config.resolve_model_provider('deepseek-v4-flash')\n    assert ':' not in provider[len('custom:'):]\n_names = st.text(alphabet=st.sampled_from(list('abcXYZ019 ()[]{}.:-_/')), min_size=1, max_size=30).filter(lambda s: s.strip() != '')",
+ "approved_count": 1
+}

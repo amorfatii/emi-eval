@@ -1,0 +1,107 @@
+{
+ "task": "cs-si__eodag-2176",
+ "passing_on_baseline": [
+  "test_non_empty_provider_description_is_kept",
+  "test_overlapping_parameter_does_not_raise_attribute_error",
+  "test_overlapping_parameter_is_exposed_under_eodag_name",
+  "test_overlapping_parameter_never_fails_for_any_title_and_description",
+  "test_overlapping_parameter_with_default_value",
+  "test_overlapping_parameter_with_title_and_description_only",
+  "test_provider_only_parameter_is_kept"
+ ],
+ "passing_on_fix": [
+  "test_non_empty_provider_description_is_kept",
+  "test_overlapping_parameter_does_not_raise_attribute_error",
+  "test_overlapping_parameter_is_exposed_under_eodag_name",
+  "test_overlapping_parameter_never_fails_for_any_title_and_description",
+  "test_overlapping_parameter_with_default_value",
+  "test_overlapping_parameter_with_title_and_description_only",
+  "test_provider_only_parameter_is_kept"
+ ],
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "How should the merge of provider and EODAG FieldInfo attributes be done, given pydantic's FieldInfo has no `asdict()` in the user's installed version?",
+   "choices": [
+    "Read attributes directly from the provider FieldInfo (e.g. title, description, default, alias) with getattr",
+    "Use a version-tolerant helper that tries `asdict()` and falls back to attribute reads",
+    "Skip the attribute merge and keep the provider FieldInfo, adding only the EODAG metadata",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "When the provider queryable has an empty or unset attribute (e.g. no description or title), what should the merged field use?",
+   "choices": [
+    "The EODAG queryable's value, as the current code intends",
+    "Keep the provider's empty value",
+    "The EODAG value only for title and description, and the provider's value for everything else",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Which attributes of the provider FieldInfo should go into the merged `Field(...)`?",
+   "choices": [
+    "Only a fixed whitelist (default, title, description, alias)",
+    "Every non-default attribute of the FieldInfo",
+    "Whatever the old `asdict()['attributes']` produced, reproduced as closely as possible",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If the merge still fails for a single queryable (unexpected FieldInfo shape), what should happen?",
+   "choices": [
+    "Log at debug level and fall back to the unmerged provider definition for that parameter",
+    "Let the error propagate",
+    "Drop that queryable from the results",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What tests should be added?",
+   "choices": [
+    "A unit test of discover_queryables with a mocked provider queryables response for a parameter that overlaps an EODAG STAC queryable",
+    "Also a regression test that searches sentinel-1-rtc on planetary_computer with mocks",
+    "Only update the existing tests",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "How should the merge of provider and EODAG FieldInfo attributes be done, given pydantic's FieldInfo has no `asdict()` in the user's installed version?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "When the provider queryable has an empty or unset attribute (e.g. no description or title), what should the merged field use?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Which attributes of the provider FieldInfo should go into the merged `Field(...)`?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "If the merge still fails for a single queryable (unexpected FieldInfo shape), what should happen?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "What tests should be added?",
+   "choice": "A unit test of discover_queryables with a mocked provider queryables response for a parameter that overlaps an EODAG STAC queryable"
+  }
+ ],
+ "drafted": "\"\"\"Acceptance rules: discover_queryables must merge provider and EODAG queryables\nwithout failing on pydantic FieldInfo objects.\"\"\"\n\nfrom unittest import mock\n\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nfrom typing_extensions import get_args\n\nfrom eodag.api.provider import ProvidersDict\nfrom eodag.config import load_default_config\nfrom eodag.plugins.manager import PluginManager\n\n_PLUGINS = PluginManager(ProvidersDict.from_configs(load_default_config()))\n\n\ndef _plugin():\n    return next(_PLUGINS.get_search_plugins(provider=\"dedl\"))\n\n\ndef _discover(properties):\n    with mock.patch(\n        \"eodag.plugins.search.qssearch.QueryStringSearch._request\", autospec=True\n    ) as mock_request:\n        mock_request.return_value = mock.Mock()\n        mock_request.return_value.json.side_effect = [\n            {\"type\": \"object\", \"properties\": properties}\n        ]\n        return _plugin().discover_queryables(\n            collection=\"CAMS_GAC_FORECAST\", provider=\"dedl\"\n        )\n\n\ndef test_overlapping_parameter_does_not_raise_attribute_error():\n    \"\"\"discover_queryables does not raise when a provider queryable overlaps an EODAG STAC queryable.\"\"\"\n    queryables = _discover(\n        {\n            \"start_datetime\": {\n                \"title\": \"Start datetime\",\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": \"provider start description\",\n            },\n            \"geometry\": {\"title\": \"Geometry\", \"description\": \"provider geom\"},\n        }\n    )\n    assert \"start\" in queryables\n    assert \"geom\" in queryables\n\n\ndef test_overlapping_parameter_is_exposed_under_eodag_name():\n    \"\"\"A provider queryable overlapping an EODAG queryable is returned under the EODAG parameter name.\"\"\"\n    queryables = _discover(\n        {\"start_datetime\": {\"title\": \"S\", \"type\": \"string\", \"format\": \"date-time\"}}\n    )\n    assert \"start\" in queryables\n    assert \"start_datetime\" not in queryables\n\n\ndef test_provider_only_parameter_is_kept():\n    \"\"\"A provider queryable that does not overlap an EODAG queryable is still returned.\"\"\"\n    queryables = _discover(\n        {\n            \"start_datetime\": {\"title\": \"S\", \"type\": \"string\"},\n            \"some_provider_param\": {\n                \"title\": \"Some param\",\n                \"type\": \"integer\",\n                \"description\": \"provider-only param\",\n            },\n        }\n    )\n    assert \"some_provider_param\" in queryables\n    args = get_args(queryables[\"some_provider_param\"])\n    assert args[0] is int\n    assert args[1].description == \"provider-only param\"\n\n\ndef test_overlapping_parameter_with_title_and_description_only():\n    \"\"\"An overlapping provider queryable with sparse attributes (no description or title) is still returned.\"\"\"\n    queryables = _discover({\"start_datetime\": {\"type\": \"string\"}})\n    assert \"start\" in queryables\n\n\ndef test_overlapping_parameter_with_default_value():\n    \"\"\"An overlapping provider queryable carrying a default value is still returned.\"\"\"\n    queryables = _discover(\n        {\n            \"start_datetime\": {\n                \"title\": \"Start\",\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"default\": \"2021-01-01T00:00:00Z\",\n            }\n        }\n    )\n    assert \"start\" in queryables\n\n\n@settings(\n    max_examples=25,\n    deadline=None,\n    suppress_health_check=[HealthCheck.function_scoped_fixture],\n)\n@given(\n    title=st.one_of(st.none(), st.text(min_size=0, max_size=30)),\n    description=st.one_of(st.none(), st.text(min_size=0, max_size=60)),\n)\ndef test_overlapping_parameter_never_fails_for_any_title_and_description(\n    title, description\n):\n    \"\"\"For any provider title and description (set, empty or missing), discovery of an overlapping queryable succeeds.\"\"\"\n    prop = {\"type\": \"string\", \"format\": \"date-time\"}\n    if title is not None:\n        prop[\"title\"] = title\n    if description is not None:\n        prop[\"description\"] = description\n    queryables = _discover({\"start_datetime\": prop})\n    assert \"start\" in queryables\n    assert get_args(queryables[\"start\"])[1] is not None\n\n\n@settings(max_examples=25, deadline=None)\n@given(\n    description=st.text(\n        alphabet=st.characters(min_codepoint=33, max_codepoint=126),\n        min_size=1,\n        max_size=40,\n    )\n)\ndef test_non_empty_provider_description_is_kept(description):\n    \"\"\"For any non-empty provider description on an overlapping queryable, the merged queryable keeps it.\"\"\"\n    queryables = _discover(\n        {\n            \"start_datetime\": {\n                \"title\": \"Start\",\n                \"type\": \"string\",\n                \"format\": \"date-time\",\n                \"description\": description,\n            }\n        }\n    )\n    assert get_args(queryables[\"start\"])[1].description == description\n",
+ "rules": "\"\"\"Acceptance rules: discover_queryables must merge provider and EODAG queryables\nwithout failing on pydantic FieldInfo objects.\"\"\"\nfrom unittest import mock\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nfrom typing_extensions import get_args\nfrom eodag.api.provider import ProvidersDict\nfrom eodag.config import load_default_config\nfrom eodag.plugins.manager import PluginManager\n_PLUGINS = PluginManager(ProvidersDict.from_configs(load_default_config()))\n\ndef _plugin():\n    return next(_PLUGINS.get_search_plugins(provider='dedl'))\n\ndef _discover(properties):\n    with mock.patch('eodag.plugins.search.qssearch.QueryStringSearch._request', autospec=True) as mock_request:\n        mock_request.return_value = mock.Mock()\n        mock_request.return_value.json.side_effect = [{'type': 'object', 'properties': properties}]\n        return _plugin().discover_queryables(collection='CAMS_GAC_FORECAST', provider='dedl')\n\ndef test_overlapping_parameter_does_not_raise_attribute_error():\n    \"\"\"discover_queryables does not raise when a provider queryable overlaps an EODAG STAC queryable.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start datetime', 'type': 'string', 'format': 'date-time', 'description': 'provider start description'}, 'geometry': {'title': 'Geometry', 'description': 'provider geom'}})\n    assert 'start' in queryables\n    assert 'geom' in queryables\n\ndef test_overlapping_parameter_is_exposed_under_eodag_name():\n    \"\"\"A provider queryable overlapping an EODAG queryable is returned under the EODAG parameter name.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'S', 'type': 'string', 'format': 'date-time'}})\n    assert 'start' in queryables\n    assert 'start_datetime' not in queryables\n\ndef test_provider_only_parameter_is_kept():\n    \"\"\"A provider queryable that does not overlap an EODAG queryable is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'S', 'type': 'string'}, 'some_provider_param': {'title': 'Some param', 'type': 'integer', 'description': 'provider-only param'}})\n    assert 'some_provider_param' in queryables\n    args = get_args(queryables['some_provider_param'])\n    assert args[0] is int\n    assert args[1].description == 'provider-only param'\n\ndef test_overlapping_parameter_with_title_and_description_only():\n    \"\"\"An overlapping provider queryable with sparse attributes (no description or title) is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'type': 'string'}})\n    assert 'start' in queryables\n\ndef test_overlapping_parameter_with_default_value():\n    \"\"\"An overlapping provider queryable carrying a default value is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start', 'type': 'string', 'format': 'date-time', 'default': '2021-01-01T00:00:00Z'}})\n    assert 'start' in queryables\n\n@settings(max_examples=25, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])\n@given(title=st.one_of(st.none(), st.text(min_size=0, max_size=30)), description=st.one_of(st.none(), st.text(min_size=0, max_size=60)))\ndef test_overlapping_parameter_never_fails_for_any_title_and_description(title, description):\n    \"\"\"For any provider title and description (set, empty or missing), discovery of an overlapping queryable succeeds.\"\"\"\n    prop = {'type': 'string', 'format': 'date-time'}\n    if title is not None:\n        prop['title'] = title\n    if description is not None:\n        prop['description'] = description\n    queryables = _discover({'start_datetime': prop})\n    assert 'start' in queryables\n    assert get_args(queryables['start'])[1] is not None\n\n@settings(max_examples=25, deadline=None)\n@given(description=st.text(alphabet=st.characters(min_codepoint=33, max_codepoint=126), min_size=1, max_size=40))\ndef test_non_empty_provider_description_is_kept(description):\n    \"\"\"For any non-empty provider description on an overlapping queryable, the merged queryable keeps it.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start', 'type': 'string', 'format': 'date-time', 'description': description}})\n    assert get_args(queryables['start'])[1].description == description",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_non_empty_provider_description_is_kept",
+  "test_overlapping_parameter_does_not_raise_attribute_error",
+  "test_overlapping_parameter_is_exposed_under_eodag_name",
+  "test_overlapping_parameter_never_fails_for_any_title_and_description",
+  "test_overlapping_parameter_with_default_value",
+  "test_overlapping_parameter_with_title_and_description_only",
+  "test_provider_only_parameter_is_kept"
+ ],
+ "cost_usd": 0.1685,
+ "rejected_at_approval": [],
+ "approved": "\"\"\"Acceptance rules: discover_queryables must merge provider and EODAG queryables\nwithout failing on pydantic FieldInfo objects.\"\"\"\nfrom unittest import mock\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nfrom typing_extensions import get_args\nfrom eodag.api.provider import ProvidersDict\nfrom eodag.config import load_default_config\nfrom eodag.plugins.manager import PluginManager\n_PLUGINS = PluginManager(ProvidersDict.from_configs(load_default_config()))\n\ndef _plugin():\n    return next(_PLUGINS.get_search_plugins(provider='dedl'))\n\ndef _discover(properties):\n    with mock.patch('eodag.plugins.search.qssearch.QueryStringSearch._request', autospec=True) as mock_request:\n        mock_request.return_value = mock.Mock()\n        mock_request.return_value.json.side_effect = [{'type': 'object', 'properties': properties}]\n        return _plugin().discover_queryables(collection='CAMS_GAC_FORECAST', provider='dedl')\n\ndef test_overlapping_parameter_does_not_raise_attribute_error():\n    \"\"\"discover_queryables does not raise when a provider queryable overlaps an EODAG STAC queryable.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start datetime', 'type': 'string', 'format': 'date-time', 'description': 'provider start description'}, 'geometry': {'title': 'Geometry', 'description': 'provider geom'}})\n    assert 'start' in queryables\n    assert 'geom' in queryables\n\ndef test_overlapping_parameter_is_exposed_under_eodag_name():\n    \"\"\"A provider queryable overlapping an EODAG queryable is returned under the EODAG parameter name.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'S', 'type': 'string', 'format': 'date-time'}})\n    assert 'start' in queryables\n    assert 'start_datetime' not in queryables\n\ndef test_provider_only_parameter_is_kept():\n    \"\"\"A provider queryable that does not overlap an EODAG queryable is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'S', 'type': 'string'}, 'some_provider_param': {'title': 'Some param', 'type': 'integer', 'description': 'provider-only param'}})\n    assert 'some_provider_param' in queryables\n    args = get_args(queryables['some_provider_param'])\n    assert args[0] is int\n    assert args[1].description == 'provider-only param'\n\ndef test_overlapping_parameter_with_title_and_description_only():\n    \"\"\"An overlapping provider queryable with sparse attributes (no description or title) is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'type': 'string'}})\n    assert 'start' in queryables\n\ndef test_overlapping_parameter_with_default_value():\n    \"\"\"An overlapping provider queryable carrying a default value is still returned.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start', 'type': 'string', 'format': 'date-time', 'default': '2021-01-01T00:00:00Z'}})\n    assert 'start' in queryables\n\n@settings(max_examples=25, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])\n@given(title=st.one_of(st.none(), st.text(min_size=0, max_size=30)), description=st.one_of(st.none(), st.text(min_size=0, max_size=60)))\ndef test_overlapping_parameter_never_fails_for_any_title_and_description(title, description):\n    \"\"\"For any provider title and description (set, empty or missing), discovery of an overlapping queryable succeeds.\"\"\"\n    prop = {'type': 'string', 'format': 'date-time'}\n    if title is not None:\n        prop['title'] = title\n    if description is not None:\n        prop['description'] = description\n    queryables = _discover({'start_datetime': prop})\n    assert 'start' in queryables\n    assert get_args(queryables['start'])[1] is not None\n\n@settings(max_examples=25, deadline=None)\n@given(description=st.text(alphabet=st.characters(min_codepoint=33, max_codepoint=126), min_size=1, max_size=40))\ndef test_non_empty_provider_description_is_kept(description):\n    \"\"\"For any non-empty provider description on an overlapping queryable, the merged queryable keeps it.\"\"\"\n    queryables = _discover({'start_datetime': {'title': 'Start', 'type': 'string', 'format': 'date-time', 'description': description}})\n    assert get_args(queryables['start'])[1].description == description",
+ "approved_count": 7
+}

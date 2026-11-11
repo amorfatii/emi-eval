@@ -216,7 +216,9 @@ def run_one(task, setup: str, run: int, args) -> dict:
         rules = args.drafted / task.id / RULES_FILE
         if not rules.exists():
             raise SystemExit(f"{task.id}: no drafted rules; run tracks.draft_rules first")
-        laws = {RULES_FILE: rules.read_text()}
+        text = rules.read_text()
+        # no approved rule: setup 4 is setup 3 for this task
+        laws = {RULES_FILE: text} if "def test" in text else None
     repo = task.build(root, args.emi, laws, args.work)
     snaps, state = root / "snapshots", root / "state"
     snaps.mkdir(parents=True, exist_ok=True)
@@ -283,6 +285,7 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, default=Path("results-closed-loop"))
     ap.add_argument("--drafted", type=Path, default=Path("inputs-closed-loop/drafted"))
     ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--start", type=int, default=0, help="first run index, to split runs over processes")
     ap.add_argument("--setups", nargs="*", default=list(SETUPS), choices=SETUPS)
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--max-turns", type=int, default=40)
@@ -302,7 +305,7 @@ def main(argv=None) -> int:
     else:
         tasks = [Synthetic(t) for t in DISCRIMINATION
                  if t.kind != "refactor" and (not args.only or t.id in args.only)]
-    for run in range(args.runs):
+    for run in range(args.start, args.start + args.runs):
         for task in tasks:
             # rotate the setup order per task and run, against drift in the model service
             k = (run + tasks.index(task)) % len(args.setups)

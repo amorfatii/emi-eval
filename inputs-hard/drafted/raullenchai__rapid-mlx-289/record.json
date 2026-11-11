@@ -1,0 +1,104 @@
+{
+ "task": "raullenchai__rapid-mlx-289",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Should the split-at-marker fix be applied only to the Gemma 4 parser, or also to the other parsers (qwen3, harmony, deepseek_r1, minimax)?",
+   "choices": [
+    "Gemma 4 only, plus its regression test",
+    "All listed parsers in this change",
+    "Gemma 4 plus any others confirmed to have the bug by a failing test",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should a delta be handled when it holds several markers, such as thought end, content start, and turn end, or more than one thought-to-content cycle?",
+   "choices": [
+    "Process every marker in order and route each segment to its own channel",
+    "Handle only the first transition and treat the rest as the new state",
+    "Keep one reasoning and one content field, appending segments by their final channel",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen when a marker is split across two deltas, for example `<channel` in one delta and `|>` in the next? The tail of the first delta currently gets emitted as text before the marker is complete.",
+   "choices": [
+    "Hold back a possible partial marker at the end of the delta until the next delta resolves it",
+    "Accept the current behaviour and fix only markers that fall entirely within one delta",
+    "Hold back partial markers, then flush them at finalize_streaming if the stream ends",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "When a delta ends in reasoning and starts content, what should the emitted DeltaMessage look like? Downstream code may not expect both fields set at once.",
+   "choices": [
+    "One DeltaMessage with both reasoning and content set",
+    "Check how the chat route consumes it and make sure both fields are emitted",
+    "Return separate messages, which means changing the parser interface",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the `thought\\n`, `content\\n` and `final\\n` label stripping behave? It currently removes those substrings anywhere in the delta, so it can strip legitimate text such as the word 'thought' followed by a newline.",
+   "choices": [
+    "Strip labels only directly after a `<|channel>` marker",
+    "Keep the current global stripping, since this is out of scope",
+    "Strip after the marker, and also handle a label split across deltas",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Should the split-at-marker fix be applied only to the Gemma 4 parser, or also to the other parsers (qwen3, harmony, deepseek_r1, minimax)?",
+   "choice": "Gemma 4 only, plus its regression test"
+  },
+  {
+   "q": "How should a delta be handled when it holds several markers, such as thought end, content start, and turn end, or more than one thought-to-content cycle?",
+   "choice": "Process every marker in order and route each segment to its own channel"
+  },
+  {
+   "q": "What should happen when a marker is split across two deltas, for example `<channel` in one delta and `|>` in the next? The tail of the first delta currently gets emitted as text before the marker is complete.",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "When a delta ends in reasoning and starts content, what should the emitted DeltaMessage look like? Downstream code may not expect both fields set at once.",
+   "choice": "One DeltaMessage with both reasoning and content set"
+  },
+  {
+   "q": "How should the `thought\\n`, `content\\n` and `final\\n` label stripping behave? It currently removes those substrings anywhere in the delta, so it can strip legitimate text such as the word 'thought' followed by a newline.",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "from hypothesis import given, strategies as st\n\nfrom vllm_mlx.reasoning.gemma4_parser import Gemma4ReasoningParser\n\nTHOUGHT_OPEN = \"<|channel>thought\\n\"\nCLOSE = \"<channel|>\"\nCONTENT_OPEN = \"<|channel>content\\n\"\nTURN_END = \"<turn|>\"\n\n\ndef _run(deltas):\n    \"\"\"Feed deltas through a fresh parser; return (reasoning, content, msgs).\"\"\"\n    parser = Gemma4ReasoningParser()\n    prev = \"\"\n    reasoning, content, msgs = \"\", \"\", []\n    for d in deltas:\n        cur = prev + d\n        msg = parser.extract_reasoning_streaming(prev, cur, d)\n        prev = cur\n        msgs.append(msg)\n        if msg is not None:\n            reasoning += msg.reasoning or \"\"\n            content += msg.content or \"\"\n    return reasoning, content, msgs\n\n\ndef test_issue_example_delta_straddling_close_splits_reasoning_and_content():\n    \"\"\"A delta holding the end of thought, the close marker and the start of content routes each part to its own channel.\"\"\"\n    parser = Gemma4ReasoningParser()\n    previous = \"<|channel>thoughtthinking...\"\n    delta = \" final thought<channel|><|channel>contentHello\"\n    current = previous + delta\n    parser.extract_reasoning_streaming(\"\", previous, previous)\n    msg = parser.extract_reasoning_streaming(previous, current, delta)\n    assert msg.reasoning == \" final thought\"\n    assert msg.content == \"Hello\"\n\n\ndef test_straddling_delta_yields_one_message_with_both_fields():\n    \"\"\"A delta that ends reasoning and starts content produces a single DeltaMessage with both reasoning and content set.\"\"\"\n    r, c, msgs = _run(\n        [\n            THOUGHT_OPEN + \"step one\",\n            \". Wyoming (WY)\" + CLOSE + CONTENT_OPEN + \"1. Alabama (AL)\",\n        ]\n    )\n    last = msgs[-1]\n    assert last is not None\n    assert last.reasoning == \". Wyoming (WY)\"\n    assert last.content == \"1. Alabama (AL)\"\n    assert r == \"step one. Wyoming (WY)\"\n    assert c == \"1. Alabama (AL)\"\n\n\ndef test_trailing_reasoning_bytes_do_not_leak_into_content():\n    \"\"\"Reasoning bytes that arrive in the same delta before the close marker never appear in content.\"\"\"\n    r, c, _ = _run([THOUGHT_OPEN + \"abc\", \"tail\" + CLOSE + CONTENT_OPEN + \"answer\"])\n    assert \"tail\" not in c\n    assert c == \"answer\"\n    assert r == \"abctail\"\n\n\ndef test_delta_with_several_markers_is_processed_in_order():\n    \"\"\"A single delta with thought end, content start and turn end routes every segment to its own channel.\"\"\"\n    delta = THOUGHT_OPEN + \"think\" + CLOSE + CONTENT_OPEN + \"answer\" + CLOSE + TURN_END\n    r, c, _ = _run([delta])\n    assert r == \"think\"\n    assert c == \"answer\"\n\n\ndef test_whole_stream_in_one_delta_matches_split_stream():\n    \"\"\"Delivering a whole response as one delta gives the same reasoning and content as delivering it in small pieces.\"\"\"\n    full = THOUGHT_OPEN + \"ponder\" + CLOSE + CONTENT_OPEN + \"reply\" + CLOSE\n    r1, c1, _ = _run([full])\n    r2, c2, _ = _run(\n        [THOUGHT_OPEN, \"pon\", \"der\", CLOSE, CONTENT_OPEN, \"re\", \"ply\", CLOSE]\n    )\n    assert (r1, c1) == (r2, c2) == (\"ponder\", \"reply\")\n\n\ndef test_pure_content_without_channels_stays_content():\n    \"\"\"Plain text with no channel markers is routed to content.\"\"\"\n    r, c, _ = _run([\"Hello \", \"world\"])\n    assert r == \"\"\n    assert c == \"Hello world\"\n\n\n_text = st.text(alphabet=\"abcxyz .()0123\", min_size=1, max_size=30)\n\n\n@given(\n    reasoning=_text,\n    content=_text,\n    data=st.data(),\n)\ndef test_any_grouping_of_tokens_reassembles_to_same_channels(reasoning, content, data):\n    \"\"\"However the stream's pieces are batched into deltas, the reassembled reasoning and content equal the original reasoning and content.\"\"\"\n    atoms = [THOUGHT_OPEN]\n    atoms += list(reasoning)\n    atoms += [CLOSE, CONTENT_OPEN]\n    atoms += list(content)\n    atoms += [CLOSE]\n    deltas, cur = [], \"\"\n    for a in atoms:\n        cur += a\n        if data.draw(st.booleans()):\n            deltas.append(cur)\n            cur = \"\"\n    if cur:\n        deltas.append(cur)\n    r, c, _ = _run(deltas)\n    assert r == reasoning\n    assert c == content\n\n\n@given(reasoning=_text, content=_text)\ndef test_streamed_content_matches_nonstreamed_content(reasoning, content):\n    \"\"\"Streamed content, reassembled, equals the content from non-streaming extraction of the same output.\"\"\"\n    full = THOUGHT_OPEN + reasoning + CLOSE + CONTENT_OPEN + content + CLOSE\n    _, streamed_content, _ = _run([full])\n    _, expected = Gemma4ReasoningParser().extract_reasoning(full)\n    assert streamed_content.strip() == (expected or \"\").strip()\n",
+ "cost_usd": 0.1849,
+ "passing_on_baseline": [
+  "test_pure_content_without_channels_stays_content"
+ ],
+ "passing_on_fix": [
+  "test_pure_content_without_channels_stays_content",
+  "test_straddling_delta_yields_one_message_with_both_fields",
+  "test_trailing_reasoning_bytes_do_not_leak_into_content"
+ ],
+ "rules": "from hypothesis import given, strategies as st\nfrom vllm_mlx.reasoning.gemma4_parser import Gemma4ReasoningParser\nTHOUGHT_OPEN = '<|channel>thought\\n'\nCLOSE = '<channel|>'\nCONTENT_OPEN = '<|channel>content\\n'\nTURN_END = '<turn|>'\n\ndef _run(deltas):\n    \"\"\"Feed deltas through a fresh parser; return (reasoning, content, msgs).\"\"\"\n    parser = Gemma4ReasoningParser()\n    prev = ''\n    reasoning, content, msgs = ('', '', [])\n    for d in deltas:\n        cur = prev + d\n        msg = parser.extract_reasoning_streaming(prev, cur, d)\n        prev = cur\n        msgs.append(msg)\n        if msg is not None:\n            reasoning += msg.reasoning or ''\n            content += msg.content or ''\n    return (reasoning, content, msgs)\n\ndef test_issue_example_delta_straddling_close_splits_reasoning_and_content():\n    \"\"\"A delta holding the end of thought, the close marker and the start of content routes each part to its own channel.\"\"\"\n    parser = Gemma4ReasoningParser()\n    previous = '<|channel>thoughtthinking...'\n    delta = ' final thought<channel|><|channel>contentHello'\n    current = previous + delta\n    parser.extract_reasoning_streaming('', previous, previous)\n    msg = parser.extract_reasoning_streaming(previous, current, delta)\n    assert msg.reasoning == ' final thought'\n    assert msg.content == 'Hello'\n\ndef test_straddling_delta_yields_one_message_with_both_fields():\n    \"\"\"A delta that ends reasoning and starts content produces a single DeltaMessage with both reasoning and content set.\"\"\"\n    r, c, msgs = _run([THOUGHT_OPEN + 'step one', '. Wyoming (WY)' + CLOSE + CONTENT_OPEN + '1. Alabama (AL)'])\n    last = msgs[-1]\n    assert last is not None\n    assert last.reasoning == '. Wyoming (WY)'\n    assert last.content == '1. Alabama (AL)'\n    assert r == 'step one. Wyoming (WY)'\n    assert c == '1. Alabama (AL)'\n\ndef test_trailing_reasoning_bytes_do_not_leak_into_content():\n    \"\"\"Reasoning bytes that arrive in the same delta before the close marker never appear in content.\"\"\"\n    r, c, _ = _run([THOUGHT_OPEN + 'abc', 'tail' + CLOSE + CONTENT_OPEN + 'answer'])\n    assert 'tail' not in c\n    assert c == 'answer'\n    assert r == 'abctail'\n\ndef test_delta_with_several_markers_is_processed_in_order():\n    \"\"\"A single delta with thought end, content start and turn end routes every segment to its own channel.\"\"\"\n    delta = THOUGHT_OPEN + 'think' + CLOSE + CONTENT_OPEN + 'answer' + CLOSE + TURN_END\n    r, c, _ = _run([delta])\n    assert r == 'think'\n    assert c == 'answer'\n\ndef test_whole_stream_in_one_delta_matches_split_stream():\n    \"\"\"Delivering a whole response as one delta gives the same reasoning and content as delivering it in small pieces.\"\"\"\n    full = THOUGHT_OPEN + 'ponder' + CLOSE + CONTENT_OPEN + 'reply' + CLOSE\n    r1, c1, _ = _run([full])\n    r2, c2, _ = _run([THOUGHT_OPEN, 'pon', 'der', CLOSE, CONTENT_OPEN, 're', 'ply', CLOSE])\n    assert (r1, c1) == (r2, c2) == ('ponder', 'reply')\n\ndef test_pure_content_without_channels_stays_content():\n    \"\"\"Plain text with no channel markers is routed to content.\"\"\"\n    r, c, _ = _run(['Hello ', 'world'])\n    assert r == ''\n    assert c == 'Hello world'\n_text = st.text(alphabet='abcxyz .()0123', min_size=1, max_size=30)\n\n@given(reasoning=_text, content=_text, data=st.data())\ndef test_any_grouping_of_tokens_reassembles_to_same_channels(reasoning, content, data):\n    \"\"\"However the stream's pieces are batched into deltas, the reassembled reasoning and content equal the original reasoning and content.\"\"\"\n    atoms = [THOUGHT_OPEN]\n    atoms += list(reasoning)\n    atoms += [CLOSE, CONTENT_OPEN]\n    atoms += list(content)\n    atoms += [CLOSE]\n    deltas, cur = ([], '')\n    for a in atoms:\n        cur += a\n        if data.draw(st.booleans()):\n            deltas.append(cur)\n            cur = ''\n    if cur:\n        deltas.append(cur)\n    r, c, _ = _run(deltas)\n    assert r == reasoning\n    assert c == content\n\n@given(reasoning=_text, content=_text)\ndef test_streamed_content_matches_nonstreamed_content(reasoning, content):\n    \"\"\"Streamed content, reassembled, equals the content from non-streaming extraction of the same output.\"\"\"\n    full = THOUGHT_OPEN + reasoning + CLOSE + CONTENT_OPEN + content + CLOSE\n    _, streamed_content, _ = _run([full])\n    _, expected = Gemma4ReasoningParser().extract_reasoning(full)\n    assert streamed_content.strip() == (expected or '').strip()",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_any_grouping_of_tokens_reassembles_to_same_channels",
+  "test_delta_with_several_markers_is_processed_in_order",
+  "test_issue_example_delta_straddling_close_splits_reasoning_and_content",
+  "test_pure_content_without_channels_stays_content",
+  "test_straddling_delta_yields_one_message_with_both_fields",
+  "test_streamed_content_matches_nonstreamed_content",
+  "test_trailing_reasoning_bytes_do_not_leak_into_content",
+  "test_whole_stream_in_one_delta_matches_split_stream"
+ ],
+ "rejected_at_approval": [
+  "test_any_grouping_of_tokens_reassembles_to_same_channels",
+  "test_delta_with_several_markers_is_processed_in_order",
+  "test_issue_example_delta_straddling_close_splits_reasoning_and_content",
+  "test_streamed_content_matches_nonstreamed_content",
+  "test_whole_stream_in_one_delta_matches_split_stream"
+ ],
+ "approved": "from hypothesis import given, strategies as st\nfrom vllm_mlx.reasoning.gemma4_parser import Gemma4ReasoningParser\nTHOUGHT_OPEN = '<|channel>thought\\n'\nCLOSE = '<channel|>'\nCONTENT_OPEN = '<|channel>content\\n'\nTURN_END = '<turn|>'\n\ndef _run(deltas):\n    \"\"\"Feed deltas through a fresh parser; return (reasoning, content, msgs).\"\"\"\n    parser = Gemma4ReasoningParser()\n    prev = ''\n    reasoning, content, msgs = ('', '', [])\n    for d in deltas:\n        cur = prev + d\n        msg = parser.extract_reasoning_streaming(prev, cur, d)\n        prev = cur\n        msgs.append(msg)\n        if msg is not None:\n            reasoning += msg.reasoning or ''\n            content += msg.content or ''\n    return (reasoning, content, msgs)\n\ndef test_straddling_delta_yields_one_message_with_both_fields():\n    \"\"\"A delta that ends reasoning and starts content produces a single DeltaMessage with both reasoning and content set.\"\"\"\n    r, c, msgs = _run([THOUGHT_OPEN + 'step one', '. Wyoming (WY)' + CLOSE + CONTENT_OPEN + '1. Alabama (AL)'])\n    last = msgs[-1]\n    assert last is not None\n    assert last.reasoning == '. Wyoming (WY)'\n    assert last.content == '1. Alabama (AL)'\n    assert r == 'step one. Wyoming (WY)'\n    assert c == '1. Alabama (AL)'\n\ndef test_trailing_reasoning_bytes_do_not_leak_into_content():\n    \"\"\"Reasoning bytes that arrive in the same delta before the close marker never appear in content.\"\"\"\n    r, c, _ = _run([THOUGHT_OPEN + 'abc', 'tail' + CLOSE + CONTENT_OPEN + 'answer'])\n    assert 'tail' not in c\n    assert c == 'answer'\n    assert r == 'abctail'\n\ndef test_pure_content_without_channels_stays_content():\n    \"\"\"Plain text with no channel markers is routed to content.\"\"\"\n    r, c, _ = _run(['Hello ', 'world'])\n    assert r == ''\n    assert c == 'Hello world'\n_text = st.text(alphabet='abcxyz .()0123', min_size=1, max_size=30)",
+ "approved_count": 3
+}

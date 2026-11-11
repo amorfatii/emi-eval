@@ -140,9 +140,11 @@ def useless(src: str, body: str) -> str:
 
 
 def passing(repo: Path, py: Path, rules: Path) -> set[str]:
-    report = repo / "junit.xml"
+    report = repo.parent / (repo.name + "-junit.xml")
     report.unlink(missing_ok=True)
-    env = {**os.environ, "PYTHONPATH": str(repo), "PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"}
+    roots = [str(repo / "src")] if (repo / "src").is_dir() else []
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join([*roots, str(repo)]), "PYTHONHASHSEED": "0",
+           "PYTHONDONTWRITEBYTECODE": "1"}
     subprocess.run([str(py), "-m", "pytest", "-q", "-p", "no:cacheprovider", "-o", "addopts=",
                     f"--junitxml={report}", str(rules)], cwd=repo, env=env, capture_output=True, timeout=600)
     out = set()
@@ -160,8 +162,9 @@ def drop(src: str, names: set[str]) -> str:
     """`src` without the test functions (or Class.method) named."""
     tree = ast.parse(src)
     def keep(node, owner=""):
-        name = f"{owner}.{node.name}" if owner else getattr(node, "name", "")
-        return not (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and name in names)
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return True
+        return (f"{owner}.{node.name}" if owner else node.name) not in names
     tree.body = [n for n in tree.body if keep(n)]
     for n in tree.body:
         if isinstance(n, ast.ClassDef):
@@ -169,52 +172,131 @@ def drop(src: str, names: set[str]) -> str:
     return ast.unparse(tree)
 
 
-def teeth(task, rules_src: str, work: Path, py: Path) -> tuple[str, list[str], list[str]]:
-    product = {k: v for k, v in task.files.items()
-               if k.endswith(".py") and not os.path.basename(k).startswith("test") and "tests/" not in k}
+class SyntheticSource:
+    """A discrimination task, for drafting."""
+
+    def __init__(self, task):
+        self.id, self.issue, self.task = task.id, task.prompt, task
+        self.oracle = "\n\n".join(task.oracle.values())
+
+    def lay(self, dest: Path, fix: bool = False) -> None:
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        gold = next(c for c in self.task.candidates if c.id == "gold").edits if fix else {}
+        write_files(dest, {**self.task.files, **gold})
+
+    def product(self, dest: Path, rules_src: str) -> list[Path]:
+        return [dest / k for k in self.task.files
+                if k.endswith(".py") and not os.path.basename(k).startswith("test") and "tests/" not in k]
+
+
+class RealSource:
+    """A real-project task, for drafting: its issue text, its hidden test patch."""
+
+    def __init__(self, task):
+        self.task, self.id = task, task.id
+        self.issue, self.oracle = task.task["problem_statement"], task.task["test_patch"]
+        self.py = task.venv / "bin" / "python"
+
+    def lay(self, dest: Path, fix: bool = False) -> None:
+        from tracks.rebench import apply_patch
+        if dest.exists():
+            shutil.rmtree(dest)
+        shutil.copytree(self.task.src, dest, symlinks=True,
+                        ignore=shutil.ignore_patterns(".git", "__pycache__", "*.egg-info"))
+        if fix and not apply_patch(dest, self.task.task["patch"]):
+            raise RuntimeError(f"{self.id}: the fix does not apply")
+
+    def product(self, dest: Path, rules_src: str) -> list[Path]:
+        """The project's files for the modules the rules import."""
+        out = []
+        for node in ast.walk(ast.parse(rules_src)):
+            names = [a.name for a in node.names] if isinstance(node, ast.Import) else \
+                [node.module] if isinstance(node, ast.ImportFrom) and node.module and not node.level else []
+            for mod in names:
+                rel = Path(*mod.split("."))
+                for base in (dest, dest / "src"):
+                    for cand in (base / rel.with_suffix(".py"), base / rel / "__init__.py"):
+                        if cand.is_file() and cand not in out:
+                            out.append(cand)
+        return out
+
+
+def place(repo: Path, rules_src: str) -> Path:
+    """Where EMI runs laws, and where the drafter was told they run."""
+    path = repo / ".emi" / "laws" / RULES_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rules_src)
+    return path
+
+
+def teeth(source, rules_src: str, work: Path, py: Path) -> tuple[str, list[str], list[str]]:
     no_teeth: set[str] = set()
     for name, body in (("raise", "raise NotImplementedError"), ("none", "return None")):
         repo = work / f"useless-{name}"
-        if repo.exists():
-            shutil.rmtree(repo)
-        repo.mkdir(parents=True)
-        write_files(repo, {**task.files, **{k: useless(v, body) for k, v in product.items()}})
-        (repo / RULES_FILE).write_text(rules_src)
-        no_teeth |= passing(repo, py, repo / RULES_FILE)
+        source.lay(repo)
+        for f in source.product(repo, rules_src):
+            try:
+                f.write_text(useless(f.read_text(), body))
+            except SyntaxError:
+                continue
+        no_teeth |= passing(repo, py, place(repo, rules_src))
     kept_src = drop(rules_src, no_teeth)
     kept = sorted(n.name for n in ast.walk(ast.parse(kept_src))
                   if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name.startswith("test"))
     return kept_src, sorted(no_teeth), kept
 
 
-def draft(task, work: Path, model: str, py: Path) -> dict:
+def draft(source, work: Path, model: str, py: Path, earlier: dict | None = None) -> dict:
+    if earlier:
+        return finish(source, work, py, earlier)
     proj = work / "project"
-    if proj.exists():
-        shutil.rmtree(proj)
-    proj.mkdir(parents=True)
-    write_files(proj, task.files)
+    source.lay(proj)
     cost = 0.0
-    q = claude(QUESTIONS.format(prompt=task.prompt), proj, model, tools="Read,Glob,Grep")
+    q = claude(QUESTIONS.format(prompt=source.issue), proj, model, tools="Read,Glob,Grep")
     cost += q.get("total_cost_usd") or 0
     questions = json_in(q.get("result", "")).get("questions", [])
     for item in questions:
         item["choices"] = [*item.get("choices", []), "doesn't matter"]
     answers = []
     if questions:
-        oracle = "\n\n".join(task.oracle.values())
-        a = claude(ANSWERS.format(prompt=task.prompt, oracle=oracle,
+        a = claude(ANSWERS.format(prompt=source.issue, oracle=source.oracle,
                                   questions=json.dumps(questions, indent=1)), work, model)
         cost += a.get("total_cost_usd") or 0
         answers = json_in(a.get("result", "")).get("answers", [])
-    d = claude(DRAFT.format(prompt=task.prompt, answers=json.dumps(answers, indent=1) if answers else "(none asked)"),
+    d = claude(DRAFT.format(prompt=source.issue, answers=json.dumps(answers, indent=1) if answers else "(none asked)"),
                proj, model, tools="Read,Glob,Grep")
     cost += d.get("total_cost_usd") or 0
     rules_src = python_in(d.get("result", ""))
     ast.parse(rules_src)  # a rules file that does not parse is no rule
-    kept_src, dropped, kept = teeth(task, rules_src, work, py)
-    return {"task": task.id, "model": model, "questions": questions, "answers": answers,
-            "drafted": rules_src, "rules": kept_src, "dropped_no_teeth": dropped, "kept": kept,
-            "cost_usd": round(cost, 4)}
+    return finish(source, work, py, {"task": source.id, "model": model, "questions": questions,
+                                     "answers": answers, "drafted": rules_src, "cost_usd": round(cost, 4)})
+
+
+def finish(source, work: Path, py: Path, rec: dict) -> dict:
+    """The teeth check, and how the kept rules fare on the starting code and
+    on the developers' fix (measured, never used to choose rules)."""
+    kept_src, dropped, kept = teeth(source, rec["drafted"], work, py)
+    seen = {}
+    for name, fix in (("baseline", False), ("fix", True)):
+        tree = work / f"check-{name}"
+        source.lay(tree, fix=fix)
+        seen[name] = sorted(passing(tree, py, place(tree, kept_src)))
+    # approval, simulated: a careful person who knows the behaviour they want
+    # accepts a rule only if it holds on that behaviour, here the developers'
+    # fix. An optimistic stand-in for step 4 of the proposal's flow; the
+    # rules it rejects are kept in the record.
+    rejected = sorted(set(kept) - {n.rsplit(".", 1)[-1] for n in seen["fix"]})
+    approved_src = drop(kept_src, set(rejected) | {f"{c}.{n}" for c in classes(kept_src) for n in rejected})
+    return {**rec, "passing_on_baseline": seen["baseline"], "passing_on_fix": seen["fix"],
+            "rules": kept_src, "dropped_no_teeth": dropped, "kept": kept,
+            "rejected_at_approval": rejected, "approved": approved_src,
+            "approved_count": len(kept) - len(rejected)}
+
+
+def classes(src: str) -> list[str]:
+    return [n.name for n in ast.parse(src).body if isinstance(n, ast.ClassDef)]
 
 
 def main(argv=None) -> int:
@@ -223,21 +305,36 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, default=Path("inputs-closed-loop/drafted"))
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--recheck", action="store_true", help="redo the teeth check on drafts already made")
+    ap.add_argument("--hard", type=Path, help="inputs-hard: draft for its validated real-project tasks")
     args = ap.parse_args(argv)
-    py = ensure_venv(args.work.resolve() / "venv") / "bin" / "python"
-    for task in DISCRIMINATION:
-        if task.kind == "refactor" or (args.only and task.id not in args.only):
+    if args.hard:
+        from tracks.real_tasks import load
+        sources = [RealSource(t) for t in load(args.hard, args.work)]
+    else:
+        sources = [SyntheticSource(t) for t in DISCRIMINATION if t.kind != "refactor"]
+    for source in sources:
+        if args.only and source.id not in args.only:
             continue
+        py = source.py if isinstance(source, RealSource) else ensure_venv(args.work.resolve() / "venv") / "bin" / "python"
+        task = source
         out = args.out / task.id
-        if (out / RULES_FILE).exists():
+        earlier = json.loads((out / "record.json").read_text()) if (out / "record.json").exists() else None
+        if earlier and not args.recheck:
             print(f"{task.id}: already drafted")
             continue
-        rec = draft(task, args.work.resolve() / "draft" / task.id, args.model, py)
+        try:
+            rec = draft(task, args.work.resolve() / "draft" / task.id, args.model, py, earlier)
+        except Exception as e:  # recorded, never dropped
+            print(f"{task.id}: drafting failed: {type(e).__name__}: {str(e)[:300]}")
+            continue
         out.mkdir(parents=True, exist_ok=True)
-        (out / RULES_FILE).write_text(rec["rules"])
+        (out / RULES_FILE).write_text(rec.get("approved", rec["rules"]))
         (out / "record.json").write_text(json.dumps(rec, indent=1) + "\n")
         print(f"{task.id}: {len(rec['questions'])} questions, kept {len(rec['kept'])} rules, "
-              f"dropped {len(rec['dropped_no_teeth'])} without teeth, ${rec['cost_usd']}")
+              f"dropped {len(rec['dropped_no_teeth'])} without teeth; passing on baseline "
+              f"{len(rec['passing_on_baseline'])}, on the fix {len(rec['passing_on_fix'])}; "
+              f"approved {rec['approved_count']}; ${rec['cost_usd']}")
     return 0
 
 

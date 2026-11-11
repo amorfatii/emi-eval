@@ -1,0 +1,95 @@
+{
+ "task": "copier-org__copier-2646",
+ "passing_on_baseline": [],
+ "passing_on_fix": [],
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "How should a kill (SIGTERM/SIGINT) be handled? SIGKILL can't be caught at all.",
+   "choices": [
+    "Install a SIGTERM handler so cleanup runs on SIGTERM and Ctrl-C, and accept that SIGKILL still leaks",
+    "Only fix exceptions raised inside clone() and Worker, and leave signals alone",
+    "Also reap stale copier clone dirs left by earlier killed runs at startup",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If git clone, checkout or submodule update fails inside clone(), the new temp dir is currently orphaned. What should happen?",
+   "choices": [
+    "Always remove it before re-raising the error",
+    "Remove it unless the user asked to keep temp dirs",
+    "Remove it, and log a warning if removal itself fails",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "The issue says to optionally keep temp dirs for investigation. Should this option be added?",
+   "choices": [
+    "Yes, a CLI flag and Worker parameter, e.g. --keep-tmp",
+    "Yes, via an environment variable only",
+    "No, always delete",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should cleanup be guaranteed in the plain Template/Worker usage path as well? Today it only runs when Worker is used as a context manager.",
+   "choices": [
+    "Yes, make run_copy, run_update and run_recopy always clean up, including on errors",
+    "Only fix the temp dir leak inside clone() and keep the existing context-manager design",
+    "Also register an atexit or weakref finalizer as a safety net",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If deleting the temp dir fails during cleanup (e.g. permissions, or an open file on Windows), what should happen?",
+   "choices": [
+    "Ignore the error silently, best effort",
+    "Warn but don't fail the command",
+    "Raise as it does now, but without masking the original exception",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "How should a kill (SIGTERM/SIGINT) be handled? SIGKILL can't be caught at all.",
+   "choice": "Install a SIGTERM handler so cleanup runs on SIGTERM and Ctrl-C, and accept that SIGKILL still leaks"
+  },
+  {
+   "q": "If git clone, checkout or submodule update fails inside clone(), the new temp dir is currently orphaned. What should happen?",
+   "choice": "Always remove it before re-raising the error"
+  },
+  {
+   "q": "The issue says to optionally keep temp dirs for investigation. Should this option be added?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Should cleanup be guaranteed in the plain Template/Worker usage path as well? Today it only runs when Worker is used as a context manager.",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "If deleting the temp dir fails during cleanup (e.g. permissions, or an open file on Windows), what should happen?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport textwrap\nfrom pathlib import Path\n\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\n\nfrom copier import _vcs\n\nPREFIX = \"copier._vcs.clone.\"\n\n\ndef _clones(root: Path):\n    return [p for p in root.iterdir() if p.name.startswith(PREFIX)]\n\n\ndef _git(cwd, *args):\n    subprocess.run(\n        [\"git\", \"-c\", \"user.name=t\", \"-c\", \"user.email=t@t\", *args],\n        cwd=cwd,\n        check=True,\n        capture_output=True,\n    )\n\n\ndef _make_template(path: Path) -> Path:\n    path.mkdir()\n    (path / \"copier.yml\").write_text(\"name:\\n  type: str\\n  default: x\\n\")\n    (path / \"f.txt.jinja\").write_text(\"{{ name }}\\n\")\n    _git(path, \"init\", \"-q\")\n    _git(path, \"add\", \"-A\")\n    _git(path, \"commit\", \"-qm\", \"init\")\n    _git(path, \"tag\", \"v1.0.0\")\n    return path\n\n\n@pytest.fixture\ndef tmproot(tmp_path, monkeypatch):\n    root = tmp_path / \"tmproot\"\n    root.mkdir()\n    monkeypatch.setattr(tempfile, \"tempdir\", str(root))\n    return root\n\n\ndef test_failed_clone_removes_temp_dir(tmproot, tmp_path):\n    \"\"\"If git clone fails inside clone(), the new temp dir is removed and the error re-raised.\"\"\"\n    with pytest.raises(Exception):\n        _vcs.clone(str(tmp_path / \"does-not-exist\"), \"HEAD\")\n    assert _clones(tmproot) == []\n\n\ndef test_failed_checkout_removes_temp_dir(tmproot, tmp_path):\n    \"\"\"If checkout of a bad ref fails inside clone(), the new temp dir is removed and the error re-raised.\"\"\"\n    tpl = _make_template(tmp_path / \"tpl\")\n    with pytest.raises(Exception):\n        _vcs.clone(str(tpl), \"no-such-ref-anywhere\")\n    assert _clones(tmproot) == []\n\n\n@settings(\n    max_examples=8,\n    deadline=None,\n    suppress_health_check=[HealthCheck.function_scoped_fixture],\n)\n@given(ref=st.text(alphabet=\"abcdefghij0123456789_\", min_size=8, max_size=20))\ndef test_any_bad_ref_leaves_no_temp_dir(tmproot, tmp_path_factory, ref):\n    \"\"\"For any nonexistent ref, a failed clone() leaves no temp directory behind.\"\"\"\n    tpl = _make_template(tmp_path_factory.mktemp(\"t\") / \"tpl\")\n    before = set(_clones(tmproot))\n    with pytest.raises(Exception):\n        _vcs.clone(str(tpl), \"zz\" + ref)\n    assert set(_clones(tmproot)) == before\n\n\ndef test_successful_clone_still_returns_existing_dir(tmproot, tmp_path):\n    \"\"\"A successful clone() still returns a directory that exists.\"\"\"\n    tpl = _make_template(tmp_path / \"tpl\")\n    loc = _vcs.clone(str(tpl), \"v1.0.0\")\n    assert Path(loc).is_dir()\n    assert (Path(loc) / \"copier.yml\").exists()\n\n\ndef _run_killed(tmp_path, tmproot, sig_name):\n    tpl = _make_template(tmp_path / \"tpl\")\n    dst = tmp_path / \"dst\"\n    dst.mkdir()\n    script = textwrap.dedent(\n        f\"\"\"\n        import os, signal, sys\n        import copier\n        from copier import _main\n\n        def boom(self, *a, **k):\n            os.kill(os.getpid(), signal.{sig_name})\n            import time; time.sleep(30)\n\n        _main.Worker._render_template = boom\n        copier.run_copy({str(tpl)!r}, {str(dst)!r}, vcs_ref=\"v1.0.0\",\n                        data={{\"name\": \"a\"}}, defaults=True, quiet=True,\n                        unsafe=True)\n        \"\"\"\n    )\n    env = dict(os.environ, TMPDIR=str(tmproot))\n    subprocess.run(\n        [sys.executable, \"-c\", script],\n        env=env,\n        capture_output=True,\n        timeout=60,\n    )\n    return _clones(tmproot)\n\n\ndef test_sigterm_cleans_temp_clone(tmproot, tmp_path):\n    \"\"\"When the process receives SIGTERM, the temporary clone directory is deleted.\"\"\"\n    assert _run_killed(tmp_path, tmproot, \"SIGTERM\") == []\n\n\ndef test_sigint_cleans_temp_clone(tmproot, tmp_path):\n    \"\"\"When the process is interrupted with Ctrl-C (SIGINT), the temporary clone directory is deleted.\"\"\"\n    assert _run_killed(tmp_path, tmproot, \"SIGINT\") == []\n",
+ "rules": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport textwrap\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nfrom copier import _vcs\nPREFIX = 'copier._vcs.clone.'\n\ndef _clones(root: Path):\n    return [p for p in root.iterdir() if p.name.startswith(PREFIX)]\n\ndef _git(cwd, *args):\n    subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *args], cwd=cwd, check=True, capture_output=True)\n\ndef _make_template(path: Path) -> Path:\n    path.mkdir()\n    (path / 'copier.yml').write_text('name:\\n  type: str\\n  default: x\\n')\n    (path / 'f.txt.jinja').write_text('{{ name }}\\n')\n    _git(path, 'init', '-q')\n    _git(path, 'add', '-A')\n    _git(path, 'commit', '-qm', 'init')\n    _git(path, 'tag', 'v1.0.0')\n    return path\n\n@pytest.fixture\ndef tmproot(tmp_path, monkeypatch):\n    root = tmp_path / 'tmproot'\n    root.mkdir()\n    monkeypatch.setattr(tempfile, 'tempdir', str(root))\n    return root\n\ndef test_failed_clone_removes_temp_dir(tmproot, tmp_path):\n    \"\"\"If git clone fails inside clone(), the new temp dir is removed and the error re-raised.\"\"\"\n    with pytest.raises(Exception):\n        _vcs.clone(str(tmp_path / 'does-not-exist'), 'HEAD')\n    assert _clones(tmproot) == []\n\ndef test_failed_checkout_removes_temp_dir(tmproot, tmp_path):\n    \"\"\"If checkout of a bad ref fails inside clone(), the new temp dir is removed and the error re-raised.\"\"\"\n    tpl = _make_template(tmp_path / 'tpl')\n    with pytest.raises(Exception):\n        _vcs.clone(str(tpl), 'no-such-ref-anywhere')\n    assert _clones(tmproot) == []\n\n@settings(max_examples=8, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])\n@given(ref=st.text(alphabet='abcdefghij0123456789_', min_size=8, max_size=20))\ndef test_any_bad_ref_leaves_no_temp_dir(tmproot, tmp_path_factory, ref):\n    \"\"\"For any nonexistent ref, a failed clone() leaves no temp directory behind.\"\"\"\n    tpl = _make_template(tmp_path_factory.mktemp('t') / 'tpl')\n    before = set(_clones(tmproot))\n    with pytest.raises(Exception):\n        _vcs.clone(str(tpl), 'zz' + ref)\n    assert set(_clones(tmproot)) == before\n\ndef _run_killed(tmp_path, tmproot, sig_name):\n    tpl = _make_template(tmp_path / 'tpl')\n    dst = tmp_path / 'dst'\n    dst.mkdir()\n    script = textwrap.dedent(f'\\n        import os, signal, sys\\n        import copier\\n        from copier import _main\\n\\n        def boom(self, *a, **k):\\n            os.kill(os.getpid(), signal.{sig_name})\\n            import time; time.sleep(30)\\n\\n        _main.Worker._render_template = boom\\n        copier.run_copy({str(tpl)!r}, {str(dst)!r}, vcs_ref=\"v1.0.0\",\\n                        data={{\"name\": \"a\"}}, defaults=True, quiet=True,\\n                        unsafe=True)\\n        ')\n    env = dict(os.environ, TMPDIR=str(tmproot))\n    subprocess.run([sys.executable, '-c', script], env=env, capture_output=True, timeout=60)\n    return _clones(tmproot)",
+ "dropped_no_teeth": [
+  "test_sigint_cleans_temp_clone",
+  "test_sigterm_cleans_temp_clone",
+  "test_successful_clone_still_returns_existing_dir"
+ ],
+ "kept": [
+  "test_any_bad_ref_leaves_no_temp_dir",
+  "test_failed_checkout_removes_temp_dir",
+  "test_failed_clone_removes_temp_dir"
+ ],
+ "cost_usd": 0.1281,
+ "rejected_at_approval": [
+  "test_any_bad_ref_leaves_no_temp_dir",
+  "test_failed_checkout_removes_temp_dir",
+  "test_failed_clone_removes_temp_dir"
+ ],
+ "approved": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport textwrap\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nfrom copier import _vcs\nPREFIX = 'copier._vcs.clone.'\n\ndef _clones(root: Path):\n    return [p for p in root.iterdir() if p.name.startswith(PREFIX)]\n\ndef _git(cwd, *args):\n    subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', *args], cwd=cwd, check=True, capture_output=True)\n\ndef _make_template(path: Path) -> Path:\n    path.mkdir()\n    (path / 'copier.yml').write_text('name:\\n  type: str\\n  default: x\\n')\n    (path / 'f.txt.jinja').write_text('{{ name }}\\n')\n    _git(path, 'init', '-q')\n    _git(path, 'add', '-A')\n    _git(path, 'commit', '-qm', 'init')\n    _git(path, 'tag', 'v1.0.0')\n    return path\n\n@pytest.fixture\ndef tmproot(tmp_path, monkeypatch):\n    root = tmp_path / 'tmproot'\n    root.mkdir()\n    monkeypatch.setattr(tempfile, 'tempdir', str(root))\n    return root\n\ndef _run_killed(tmp_path, tmproot, sig_name):\n    tpl = _make_template(tmp_path / 'tpl')\n    dst = tmp_path / 'dst'\n    dst.mkdir()\n    script = textwrap.dedent(f'\\n        import os, signal, sys\\n        import copier\\n        from copier import _main\\n\\n        def boom(self, *a, **k):\\n            os.kill(os.getpid(), signal.{sig_name})\\n            import time; time.sleep(30)\\n\\n        _main.Worker._render_template = boom\\n        copier.run_copy({str(tpl)!r}, {str(dst)!r}, vcs_ref=\"v1.0.0\",\\n                        data={{\"name\": \"a\"}}, defaults=True, quiet=True,\\n                        unsafe=True)\\n        ')\n    env = dict(os.environ, TMPDIR=str(tmproot))\n    subprocess.run([sys.executable, '-c', script], env=env, capture_output=True, timeout=60)\n    return _clones(tmproot)",
+ "approved_count": 0
+}

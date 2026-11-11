@@ -1,0 +1,101 @@
+{
+ "task": "zarr-developers__virtualizarr-979",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "How should inlined chunk strings from kerchunk refs be decoded into bytes?",
+   "choices": [
+    "Strings starting with 'base64:' are base64-decoded, and all other strings are encoded as UTF-8 bytes (kerchunk convention)",
+    "Support only 'base64:' strings and raise an error for other strings",
+    "Same as the first option, but also accept raw bytes values, which can occur in parquet refs",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Which kerchunk reference formats should now read inlined data?",
+   "choices": [
+    "Both JSON and Parquet, so the Parquet NotImplementedError test is removed too",
+    "JSON only, and Parquet keeps raising NotImplementedError",
+    "Both, but Parquet is a separate follow-up",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen to the existing tests that assert NotImplementedError for inlined refs?",
+   "choices": [
+    "Replace them with roundtrip tests that check the inlined bytes survive in the manifest",
+    "Keep the error but add an opt-in flag to enable inlined reading",
+    "Delete them",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should inlined chunks behave when the dataset is written back out (to_kerchunk, icechunk) or combined with other datasets?",
+   "choices": [
+    "Write them back as inlined data, so the JSON roundtrip is lossless",
+    "Convert them to real chunk references where possible",
+    "Don't change the writers, and only make reading and combining work",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the parser treat the inline data used for scalar or coordinate variables such as `t`, and for the zarr metadata keys (.zarray and so on)?",
+   "choices": [
+    "Only chunk data is handled, because metadata is already parsed separately",
+    "Also handle inlined chunks of any variable, including scalars with key '0' and zero-dimensional arrays",
+    "Doesn't matter beyond making the user's example work",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "How should inlined chunk strings from kerchunk refs be decoded into bytes?",
+   "choice": "Strings starting with 'base64:' are base64-decoded, and all other strings are encoded as UTF-8 bytes (kerchunk convention)"
+  },
+  {
+   "q": "Which kerchunk reference formats should now read inlined data?",
+   "choice": "Both JSON and Parquet, so the Parquet NotImplementedError test is removed too"
+  },
+  {
+   "q": "What should happen to the existing tests that assert NotImplementedError for inlined refs?",
+   "choice": "Replace them with roundtrip tests that check the inlined bytes survive in the manifest"
+  },
+  {
+   "q": "How should inlined chunks behave when the dataset is written back out (to_kerchunk, icechunk) or combined with other datasets?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should the parser treat the inline data used for scalar or coordinate variables such as `t`, and for the zarr metadata keys (.zarray and so on)?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import base64\n\nimport numpy as np\nimport pytest\nimport ujson\nimport xarray as xr\nfrom hypothesis import given, settings, strategies as st\nfrom obspec_utils.registry import ObjectStoreRegistry\nfrom obstore.store import LocalStore\n\nfrom virtualizarr.parsers import KerchunkJSONParser, KerchunkParquetParser\nfrom virtualizarr.parsers.kerchunk.translator import manifest_from_kerchunk_chunk_dict\nfrom virtualizarr.xarray import open_virtual_dataset\n\npytest.importorskip(\"kerchunk\")\n\n\ndef _registry():\n    return ObjectStoreRegistry({\"file://\": LocalStore()})\n\n\ndef _data_of(manifest, key=\"0\"):\n    return manifest.dict()[key][\"data\"]\n\n\ndef test_plain_inlined_string_is_utf8_encoded():\n    \"\"\"An inlined chunk string without a 'base64:' prefix is stored in the manifest as its UTF-8 bytes.\"\"\"\n    m = manifest_from_kerchunk_chunk_dict({\"0\": \"hello w\u00f6rld\"}, shape=(1,))\n    assert _data_of(m) == \"hello w\u00f6rld\".encode(\"utf-8\")\n\n\ndef test_base64_prefixed_inlined_string_is_decoded():\n    \"\"\"An inlined chunk string starting with 'base64:' is base64-decoded into the manifest bytes.\"\"\"\n    raw = bytes(range(256))\n    s = \"base64:\" + base64.b64encode(raw).decode()\n    m = manifest_from_kerchunk_chunk_dict({\"0\": s}, shape=(1,))\n    assert _data_of(m) == raw\n\n\ndef test_inlined_chunk_does_not_raise_not_implemented():\n    \"\"\"Reading kerchunk chunk references with inlined data no longer raises NotImplementedError.\"\"\"\n    manifest_from_kerchunk_chunk_dict({\"0\": \"abc\"}, shape=(1,))\n\n\ndef test_mixed_inlined_and_referenced_chunks():\n    \"\"\"Inlined chunks and path-based chunks can live side by side in one manifest.\"\"\"\n    m = manifest_from_kerchunk_chunk_dict(\n        {\"0\": \"abc\", \"1\": [\"file:///tmp/a.nc\", 10, 20]}, shape=(2,)\n    )\n    d = m.dict()\n    assert d[\"0\"][\"data\"] == b\"abc\"\n    assert d[\"1\"][\"path\"] == \"file:///tmp/a.nc\"\n    assert d[\"1\"][\"offset\"] == 10\n    assert d[\"1\"][\"length\"] == 20\n\n\n@settings(max_examples=50)\n@given(st.binary(max_size=200))\ndef test_base64_roundtrip_any_bytes(raw):\n    \"\"\"For any bytes, a 'base64:'-prefixed encoding of them is read back as exactly those bytes.\"\"\"\n    s = \"base64:\" + base64.b64encode(raw).decode()\n    m = manifest_from_kerchunk_chunk_dict({\"0\": s}, shape=(1,))\n    assert _data_of(m) == raw\n\n\n@settings(max_examples=50)\n@given(st.text(max_size=100).filter(lambda s: not s.startswith(\"base64:\")))\ndef test_plain_string_is_its_utf8_bytes_for_any_text(text):\n    \"\"\"For any string not starting with 'base64:', the manifest holds its UTF-8 encoding.\"\"\"\n    try:\n        text.encode(\"utf-8\")\n    except UnicodeEncodeError:\n        return\n    m = manifest_from_kerchunk_chunk_dict({\"0\": text}, shape=(1,))\n    assert _data_of(m) == text.encode(\"utf-8\")\n\n\ndef _inlined_ref(tmp_path):\n    from kerchunk.hdf import SingleHdf5ToZarr\n\n    nc = tmp_path / \"f.nc\"\n    ds = xr.Dataset(\n        {\"a\": ((\"x\",), np.arange(5, dtype=\"float32\"))},\n        coords={\"x\": np.arange(5)},\n    )\n    ds.to_netcdf(nc, engine=\"h5netcdf\")\n    return SingleHdf5ToZarr(str(nc), inline_threshold=1000).translate()\n\n\ndef _inlined_chunk_values(ref):\n    out = {}\n    for k, v in ref[\"refs\"].items():\n        if isinstance(v, str) and not k.split(\"/\")[-1].startswith(\".\"):\n            out[k] = v\n    return out\n\n\ndef _decode(v):\n    if v.startswith(\"base64:\"):\n        return base64.b64decode(v[len(\"base64:\"):])\n    return v.encode(\"utf-8\")\n\n\ndef test_json_reference_with_inlined_data_opens_and_keeps_bytes(tmp_path):\n    \"\"\"Opening a kerchunk JSON file containing inlined data succeeds and the inlined bytes appear in the manifests.\"\"\"\n    ref = _inlined_ref(tmp_path)\n    inlined = _inlined_chunk_values(ref)\n    assert inlined\n    path = tmp_path / \"ref.json\"\n    path.write_text(ujson.dumps(ref))\n    with open_virtual_dataset(\n        url=path.as_posix(), registry=_registry(), parser=KerchunkJSONParser()\n    ) as vds:\n        found = []\n        for name, var in vds.variables.items():\n            manifest = getattr(var.data, \"manifest\", None)\n            if manifest is None:\n                continue\n            for entry in manifest.dict().values():\n                if entry.get(\"data\") is not None:\n                    found.append(entry[\"data\"])\n        expected = {_decode(v) for k, v in inlined.items() if \"/\" in k}\n        assert expected\n        assert expected <= set(found)\n\n\ndef test_parquet_reference_with_inlined_data_opens_and_keeps_bytes(tmp_path):\n    \"\"\"Opening a kerchunk Parquet reference containing inlined data succeeds and the inlined bytes appear in the manifests.\"\"\"\n    pytest.importorskip(\"fastparquet\")\n    import pandas as pd\n    from kerchunk.df import refs_to_dataframe\n\n    ref = _inlined_ref(tmp_path)\n    inlined = _inlined_chunk_values(ref)\n    path = tmp_path / \"ref.parquet\"\n    with pd.option_context(\"future.infer_string\", False):\n        refs_to_dataframe(fo=ref, url=path.as_posix())\n    with open_virtual_dataset(\n        url=path.as_posix(), registry=_registry(), parser=KerchunkParquetParser()\n    ) as vds:\n        found = []\n        for var in vds.variables.values():\n            manifest = getattr(var.data, \"manifest\", None)\n            if manifest is None:\n                continue\n            for entry in manifest.dict().values():\n                if entry.get(\"data\") is not None:\n                    found.append(entry[\"data\"])\n        expected = {_decode(v) for k, v in inlined.items() if \"/\" in k}\n        assert expected\n        assert expected <= set(found)\n",
+ "cost_usd": 0.152,
+ "passing_on_baseline": [],
+ "passing_on_fix": [],
+ "rules": "import base64\nimport numpy as np\nimport pytest\nimport ujson\nimport xarray as xr\nfrom hypothesis import given, settings, strategies as st\nfrom obspec_utils.registry import ObjectStoreRegistry\nfrom obstore.store import LocalStore\nfrom virtualizarr.parsers import KerchunkJSONParser, KerchunkParquetParser\nfrom virtualizarr.parsers.kerchunk.translator import manifest_from_kerchunk_chunk_dict\nfrom virtualizarr.xarray import open_virtual_dataset\npytest.importorskip('kerchunk')\n\ndef _registry():\n    return ObjectStoreRegistry({'file://': LocalStore()})\n\ndef _data_of(manifest, key='0'):\n    return manifest.dict()[key]['data']\n\ndef test_plain_inlined_string_is_utf8_encoded():\n    \"\"\"An inlined chunk string without a 'base64:' prefix is stored in the manifest as its UTF-8 bytes.\"\"\"\n    m = manifest_from_kerchunk_chunk_dict({'0': 'hello w\u00f6rld'}, shape=(1,))\n    assert _data_of(m) == 'hello w\u00f6rld'.encode('utf-8')\n\ndef test_base64_prefixed_inlined_string_is_decoded():\n    \"\"\"An inlined chunk string starting with 'base64:' is base64-decoded into the manifest bytes.\"\"\"\n    raw = bytes(range(256))\n    s = 'base64:' + base64.b64encode(raw).decode()\n    m = manifest_from_kerchunk_chunk_dict({'0': s}, shape=(1,))\n    assert _data_of(m) == raw\n\ndef test_inlined_chunk_does_not_raise_not_implemented():\n    \"\"\"Reading kerchunk chunk references with inlined data no longer raises NotImplementedError.\"\"\"\n    manifest_from_kerchunk_chunk_dict({'0': 'abc'}, shape=(1,))\n\ndef test_mixed_inlined_and_referenced_chunks():\n    \"\"\"Inlined chunks and path-based chunks can live side by side in one manifest.\"\"\"\n    m = manifest_from_kerchunk_chunk_dict({'0': 'abc', '1': ['file:///tmp/a.nc', 10, 20]}, shape=(2,))\n    d = m.dict()\n    assert d['0']['data'] == b'abc'\n    assert d['1']['path'] == 'file:///tmp/a.nc'\n    assert d['1']['offset'] == 10\n    assert d['1']['length'] == 20\n\n@settings(max_examples=50)\n@given(st.binary(max_size=200))\ndef test_base64_roundtrip_any_bytes(raw):\n    \"\"\"For any bytes, a 'base64:'-prefixed encoding of them is read back as exactly those bytes.\"\"\"\n    s = 'base64:' + base64.b64encode(raw).decode()\n    m = manifest_from_kerchunk_chunk_dict({'0': s}, shape=(1,))\n    assert _data_of(m) == raw\n\n@settings(max_examples=50)\n@given(st.text(max_size=100).filter(lambda s: not s.startswith('base64:')))\ndef test_plain_string_is_its_utf8_bytes_for_any_text(text):\n    \"\"\"For any string not starting with 'base64:', the manifest holds its UTF-8 encoding.\"\"\"\n    try:\n        text.encode('utf-8')\n    except UnicodeEncodeError:\n        return\n    m = manifest_from_kerchunk_chunk_dict({'0': text}, shape=(1,))\n    assert _data_of(m) == text.encode('utf-8')\n\ndef _inlined_ref(tmp_path):\n    from kerchunk.hdf import SingleHdf5ToZarr\n    nc = tmp_path / 'f.nc'\n    ds = xr.Dataset({'a': (('x',), np.arange(5, dtype='float32'))}, coords={'x': np.arange(5)})\n    ds.to_netcdf(nc, engine='h5netcdf')\n    return SingleHdf5ToZarr(str(nc), inline_threshold=1000).translate()\n\ndef _inlined_chunk_values(ref):\n    out = {}\n    for k, v in ref['refs'].items():\n        if isinstance(v, str) and (not k.split('/')[-1].startswith('.')):\n            out[k] = v\n    return out\n\ndef _decode(v):\n    if v.startswith('base64:'):\n        return base64.b64decode(v[len('base64:'):])\n    return v.encode('utf-8')\n\ndef test_json_reference_with_inlined_data_opens_and_keeps_bytes(tmp_path):\n    \"\"\"Opening a kerchunk JSON file containing inlined data succeeds and the inlined bytes appear in the manifests.\"\"\"\n    ref = _inlined_ref(tmp_path)\n    inlined = _inlined_chunk_values(ref)\n    assert inlined\n    path = tmp_path / 'ref.json'\n    path.write_text(ujson.dumps(ref))\n    with open_virtual_dataset(url=path.as_posix(), registry=_registry(), parser=KerchunkJSONParser()) as vds:\n        found = []\n        for name, var in vds.variables.items():\n            manifest = getattr(var.data, 'manifest', None)\n            if manifest is None:\n                continue\n            for entry in manifest.dict().values():\n                if entry.get('data') is not None:\n                    found.append(entry['data'])\n        expected = {_decode(v) for k, v in inlined.items() if '/' in k}\n        assert expected\n        assert expected <= set(found)\n\ndef test_parquet_reference_with_inlined_data_opens_and_keeps_bytes(tmp_path):\n    \"\"\"Opening a kerchunk Parquet reference containing inlined data succeeds and the inlined bytes appear in the manifests.\"\"\"\n    pytest.importorskip('fastparquet')\n    import pandas as pd\n    from kerchunk.df import refs_to_dataframe\n    ref = _inlined_ref(tmp_path)\n    inlined = _inlined_chunk_values(ref)\n    path = tmp_path / 'ref.parquet'\n    with pd.option_context('future.infer_string', False):\n        refs_to_dataframe(fo=ref, url=path.as_posix())\n    with open_virtual_dataset(url=path.as_posix(), registry=_registry(), parser=KerchunkParquetParser()) as vds:\n        found = []\n        for var in vds.variables.values():\n            manifest = getattr(var.data, 'manifest', None)\n            if manifest is None:\n                continue\n            for entry in manifest.dict().values():\n                if entry.get('data') is not None:\n                    found.append(entry['data'])\n        expected = {_decode(v) for k, v in inlined.items() if '/' in k}\n        assert expected\n        assert expected <= set(found)",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_base64_prefixed_inlined_string_is_decoded",
+  "test_base64_roundtrip_any_bytes",
+  "test_inlined_chunk_does_not_raise_not_implemented",
+  "test_json_reference_with_inlined_data_opens_and_keeps_bytes",
+  "test_mixed_inlined_and_referenced_chunks",
+  "test_parquet_reference_with_inlined_data_opens_and_keeps_bytes",
+  "test_plain_inlined_string_is_utf8_encoded",
+  "test_plain_string_is_its_utf8_bytes_for_any_text"
+ ],
+ "rejected_at_approval": [
+  "test_base64_prefixed_inlined_string_is_decoded",
+  "test_base64_roundtrip_any_bytes",
+  "test_inlined_chunk_does_not_raise_not_implemented",
+  "test_json_reference_with_inlined_data_opens_and_keeps_bytes",
+  "test_mixed_inlined_and_referenced_chunks",
+  "test_parquet_reference_with_inlined_data_opens_and_keeps_bytes",
+  "test_plain_inlined_string_is_utf8_encoded",
+  "test_plain_string_is_its_utf8_bytes_for_any_text"
+ ],
+ "approved": "import base64\nimport numpy as np\nimport pytest\nimport ujson\nimport xarray as xr\nfrom hypothesis import given, settings, strategies as st\nfrom obspec_utils.registry import ObjectStoreRegistry\nfrom obstore.store import LocalStore\nfrom virtualizarr.parsers import KerchunkJSONParser, KerchunkParquetParser\nfrom virtualizarr.parsers.kerchunk.translator import manifest_from_kerchunk_chunk_dict\nfrom virtualizarr.xarray import open_virtual_dataset\npytest.importorskip('kerchunk')\n\ndef _registry():\n    return ObjectStoreRegistry({'file://': LocalStore()})\n\ndef _data_of(manifest, key='0'):\n    return manifest.dict()[key]['data']\n\ndef _inlined_ref(tmp_path):\n    from kerchunk.hdf import SingleHdf5ToZarr\n    nc = tmp_path / 'f.nc'\n    ds = xr.Dataset({'a': (('x',), np.arange(5, dtype='float32'))}, coords={'x': np.arange(5)})\n    ds.to_netcdf(nc, engine='h5netcdf')\n    return SingleHdf5ToZarr(str(nc), inline_threshold=1000).translate()\n\ndef _inlined_chunk_values(ref):\n    out = {}\n    for k, v in ref['refs'].items():\n        if isinstance(v, str) and (not k.split('/')[-1].startswith('.')):\n            out[k] = v\n    return out\n\ndef _decode(v):\n    if v.startswith('base64:'):\n        return base64.b64decode(v[len('base64:'):])\n    return v.encode('utf-8')",
+ "approved_count": 0
+}

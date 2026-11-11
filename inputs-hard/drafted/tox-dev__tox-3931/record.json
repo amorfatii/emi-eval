@@ -1,0 +1,102 @@
+{
+ "task": "tox-dev__tox-3931",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "What shape should the `deps` schema accept?",
+   "choices": [
+    "String or array of strings",
+    "Array of strings only",
+    "String or array, with array items allowing nested lists or objects",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Which config keys should get the string-or-array change?",
+   "choices": [
+    "Only `deps`",
+    "Every key whose tox type is a list of strings or requirements (for example `deps`, `commands`, `allowlist_externals`)",
+    "`deps` plus other keys that share the same underlying type",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the fix be made, given the schema is generated from code (`session/cmd/schema.py`)?",
+   "choices": [
+    "Change the generator so the schema output is correct, and regenerate the schema file",
+    "Hand-edit the JSON schema only",
+    "Fix the generator and add a test that checks the generated schema",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "Should the schema also apply to the legacy `tox.ini`/`setup.cfg` or `pyproject.toml` `[tool.tox]` formats?",
+   "choices": [
+    "tox.toml only, as in the issue",
+    "Every place the schema is used, including `[tool.tox]` in pyproject.toml",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should elements inside a `deps` array be validated?",
+   "choices": [
+    "Any string, since requirements and `-r` or `-c` arguments are free-form",
+    "Only strings that match a requirement or option pattern",
+    "Strings plus tox substitution objects such as `{ replace = ... }`",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "What shape should the `deps` schema accept?",
+   "choice": "String or array of strings"
+  },
+  {
+   "q": "Which config keys should get the string-or-array change?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should the fix be made, given the schema is generated from code (`session/cmd/schema.py`)?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "Should the schema also apply to the legacy `tox.ini`/`setup.cfg` or `pyproject.toml` `[tool.tox]` formats?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should elements inside a `deps` array be validated?",
+   "choice": "doesn't matter"
+  }
+ ],
+ "drafted": "import json\nfrom pathlib import Path\n\nimport pytest\nfrom hypothesis import given, strategies as st\n\nimport tox\nfrom tox.session.cmd.schema import _process_type\nfrom tox.tox_env.python.pip.req_file import PythonDeps\n\njsonschema = pytest.importorskip(\"jsonschema\")\n\nSCHEMA_FILE = Path(tox.__file__).parent / \"tox.schema.json\"\n\n\ndef _validator(subschema):\n    full = json.loads(SCHEMA_FILE.read_text(encoding=\"utf-8\"))\n    wrapped = {**subschema, \"definitions\": full.get(\"definitions\", {})}\n    return jsonschema.Draft7Validator(wrapped)\n\n\ndef _generated_deps():\n    return _process_type(PythonDeps)\n\n\ndef _published_deps():\n    full = json.loads(SCHEMA_FILE.read_text(encoding=\"utf-8\"))\n    return full[\"properties\"][\"env_run_base\"][\"properties\"][\"deps\"]\n\n\n@pytest.fixture(params=[\"generated\", \"published\"])\ndef deps_validator(request):\n    sub = _generated_deps() if request.param == \"generated\" else _published_deps()\n    return _validator(sub)\n\n\ndef test_deps_accepts_a_string(deps_validator):\n    \"\"\"The deps schema accepts a single string.\"\"\"\n    assert deps_validator.is_valid(\"pytest>=7\")\n\n\ndef test_deps_accepts_array_of_strings(deps_validator):\n    \"\"\"The deps schema accepts an array of strings such as requirements and requirements-file arguments.\"\"\"\n    assert deps_validator.is_valid([\"pytest>=7\", \"-r requirements.txt\", \"-c constraints.txt\"])\n\n\ndef test_deps_accepts_empty_array(deps_validator):\n    \"\"\"The deps schema accepts an empty array.\"\"\"\n    assert deps_validator.is_valid([])\n\n\ndef test_deps_rejects_non_string_non_array(deps_validator):\n    \"\"\"The deps schema rejects values that are neither a string nor an array, such as numbers, booleans and objects.\"\"\"\n    assert not deps_validator.is_valid(5)\n    assert not deps_validator.is_valid(True)\n    assert not deps_validator.is_valid({\"a\": \"b\"})\n\n\ndef test_deps_rejects_array_with_non_string_items(deps_validator):\n    \"\"\"The deps schema rejects arrays containing non-string items such as numbers.\"\"\"\n    assert not deps_validator.is_valid([1, 2])\n\n\ndef test_published_schema_deps_is_not_string_only():\n    \"\"\"The published tox.schema.json deps property is no longer string-only.\"\"\"\n    assert _published_deps() != {\n        \"type\": \"string\",\n        \"description\": _published_deps().get(\"description\"),\n    }\n\n\n@given(st.lists(st.text(), max_size=8))\ndef test_any_array_of_strings_is_valid_deps(items):\n    \"\"\"Every array of strings is valid for deps in both generated and published schemas.\"\"\"\n    assert _validator(_generated_deps()).is_valid(items)\n    assert _validator(_published_deps()).is_valid(items)\n\n\n@given(st.text())\ndef test_any_string_is_valid_deps(value):\n    \"\"\"Every string is valid for deps in both generated and published schemas.\"\"\"\n    assert _validator(_generated_deps()).is_valid(value)\n    assert _validator(_published_deps()).is_valid(value)\n\n\n@given(st.one_of(st.integers(), st.floats(allow_nan=False), st.booleans()))\ndef test_any_scalar_non_string_is_invalid_deps(value):\n    \"\"\"No number or boolean is valid for deps.\"\"\"\n    assert not _validator(_generated_deps()).is_valid(value)\n    assert not _validator(_published_deps()).is_valid(value)\n",
+ "cost_usd": 0.0896,
+ "passing_on_baseline": [],
+ "passing_on_fix": [],
+ "rules": "import json\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import given, strategies as st\nimport tox\nfrom tox.session.cmd.schema import _process_type\nfrom tox.tox_env.python.pip.req_file import PythonDeps\njsonschema = pytest.importorskip('jsonschema')\nSCHEMA_FILE = Path(tox.__file__).parent / 'tox.schema.json'\n\ndef _validator(subschema):\n    full = json.loads(SCHEMA_FILE.read_text(encoding='utf-8'))\n    wrapped = {**subschema, 'definitions': full.get('definitions', {})}\n    return jsonschema.Draft7Validator(wrapped)\n\ndef _generated_deps():\n    return _process_type(PythonDeps)\n\ndef _published_deps():\n    full = json.loads(SCHEMA_FILE.read_text(encoding='utf-8'))\n    return full['properties']['env_run_base']['properties']['deps']\n\n@pytest.fixture(params=['generated', 'published'])\ndef deps_validator(request):\n    sub = _generated_deps() if request.param == 'generated' else _published_deps()\n    return _validator(sub)\n\ndef test_deps_accepts_a_string(deps_validator):\n    \"\"\"The deps schema accepts a single string.\"\"\"\n    assert deps_validator.is_valid('pytest>=7')\n\ndef test_deps_accepts_array_of_strings(deps_validator):\n    \"\"\"The deps schema accepts an array of strings such as requirements and requirements-file arguments.\"\"\"\n    assert deps_validator.is_valid(['pytest>=7', '-r requirements.txt', '-c constraints.txt'])\n\ndef test_deps_accepts_empty_array(deps_validator):\n    \"\"\"The deps schema accepts an empty array.\"\"\"\n    assert deps_validator.is_valid([])\n\ndef test_deps_rejects_non_string_non_array(deps_validator):\n    \"\"\"The deps schema rejects values that are neither a string nor an array, such as numbers, booleans and objects.\"\"\"\n    assert not deps_validator.is_valid(5)\n    assert not deps_validator.is_valid(True)\n    assert not deps_validator.is_valid({'a': 'b'})\n\ndef test_deps_rejects_array_with_non_string_items(deps_validator):\n    \"\"\"The deps schema rejects arrays containing non-string items such as numbers.\"\"\"\n    assert not deps_validator.is_valid([1, 2])\n\ndef test_published_schema_deps_is_not_string_only():\n    \"\"\"The published tox.schema.json deps property is no longer string-only.\"\"\"\n    assert _published_deps() != {'type': 'string', 'description': _published_deps().get('description')}\n\n@given(st.lists(st.text(), max_size=8))\ndef test_any_array_of_strings_is_valid_deps(items):\n    \"\"\"Every array of strings is valid for deps in both generated and published schemas.\"\"\"\n    assert _validator(_generated_deps()).is_valid(items)\n    assert _validator(_published_deps()).is_valid(items)\n\n@given(st.text())\ndef test_any_string_is_valid_deps(value):\n    \"\"\"Every string is valid for deps in both generated and published schemas.\"\"\"\n    assert _validator(_generated_deps()).is_valid(value)\n    assert _validator(_published_deps()).is_valid(value)\n\n@given(st.one_of(st.integers(), st.floats(allow_nan=False), st.booleans()))\ndef test_any_scalar_non_string_is_invalid_deps(value):\n    \"\"\"No number or boolean is valid for deps.\"\"\"\n    assert not _validator(_generated_deps()).is_valid(value)\n    assert not _validator(_published_deps()).is_valid(value)",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_any_array_of_strings_is_valid_deps",
+  "test_any_scalar_non_string_is_invalid_deps",
+  "test_any_string_is_valid_deps",
+  "test_deps_accepts_a_string",
+  "test_deps_accepts_array_of_strings",
+  "test_deps_accepts_empty_array",
+  "test_deps_rejects_array_with_non_string_items",
+  "test_deps_rejects_non_string_non_array",
+  "test_published_schema_deps_is_not_string_only"
+ ],
+ "rejected_at_approval": [
+  "test_any_array_of_strings_is_valid_deps",
+  "test_any_scalar_non_string_is_invalid_deps",
+  "test_any_string_is_valid_deps",
+  "test_deps_accepts_a_string",
+  "test_deps_accepts_array_of_strings",
+  "test_deps_accepts_empty_array",
+  "test_deps_rejects_array_with_non_string_items",
+  "test_deps_rejects_non_string_non_array",
+  "test_published_schema_deps_is_not_string_only"
+ ],
+ "approved": "import json\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import given, strategies as st\nimport tox\nfrom tox.session.cmd.schema import _process_type\nfrom tox.tox_env.python.pip.req_file import PythonDeps\njsonschema = pytest.importorskip('jsonschema')\nSCHEMA_FILE = Path(tox.__file__).parent / 'tox.schema.json'\n\ndef _validator(subschema):\n    full = json.loads(SCHEMA_FILE.read_text(encoding='utf-8'))\n    wrapped = {**subschema, 'definitions': full.get('definitions', {})}\n    return jsonschema.Draft7Validator(wrapped)\n\ndef _generated_deps():\n    return _process_type(PythonDeps)\n\ndef _published_deps():\n    full = json.loads(SCHEMA_FILE.read_text(encoding='utf-8'))\n    return full['properties']['env_run_base']['properties']['deps']\n\n@pytest.fixture(params=['generated', 'published'])\ndef deps_validator(request):\n    sub = _generated_deps() if request.param == 'generated' else _published_deps()\n    return _validator(sub)",
+ "approved_count": 0
+}

@@ -1,0 +1,101 @@
+{
+ "task": "astronomy-commons__lsdb-1349",
+ "passing_on_baseline": [],
+ "passing_on_fix": [],
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "How should the user turn on pixel-directory output in `write_catalog`/`to_hats`?",
+   "choices": [
+    "A new argument such as `npix_suffix=\"/\"` on the call",
+    "Inherit it from the source catalog's existing `npix_suffix` property",
+    "Both: an explicit argument that overrides the inherited value",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should the per-pixel parquet file name be specified?",
+   "choices": [
+    "A string template with placeholders such as `{order}`, `{pixel}`",
+    "A callable that takes the pixel and returns the name",
+    "A fixed base name, for example `0` or `data`, used for every pixel",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "What should happen if the requested file name conflicts with the layout, for example a name without a `.parquet` extension, or one that would give two pixels the same path?",
+   "choices": [
+    "Raise a ValueError before writing anything",
+    "Silently append `.parquet` and continue",
+    "Let it through and don't validate",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "If the user picks a custom file name or the Npix directory layout, how should the writer set `hats.properties` and the partition info?",
+   "choices": [
+    "Always write `npix_suffix` to match the layout and store the file name in the properties",
+    "Write only `npix_suffix`, and leave the file name out of the properties",
+    "Write nothing new, and rely on the caller to keep them consistent",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How should this work with existing outputs: margin catalogs, collections, and writing over an existing catalog?",
+   "choices": [
+    "Apply the same layout and file name to the main catalog and its margin, and keep the current `overwrite` behavior",
+    "Apply it to the main catalog only, and leave margin catalogs flat",
+    "Apply it to all of them, and error if the target holds a different layout",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "How should the user turn on pixel-directory output in `write_catalog`/`to_hats`?",
+   "choice": "A new argument such as `npix_suffix=\"/\"` on the call"
+  },
+  {
+   "q": "How should the per-pixel parquet file name be specified?",
+   "choice": "A fixed base name, for example `0` or `data`, used for every pixel"
+  },
+  {
+   "q": "What should happen if the requested file name conflicts with the layout, for example a name without a `.parquet` extension, or one that would give two pixels the same path?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "If the user picks a custom file name or the Npix directory layout, how should the writer set `hats.properties` and the partition info?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "How should this work with existing outputs: margin catalogs, collections, and writing over an existing catalog?",
+   "choice": "Apply the same layout and file name to the main catalog and its margin, and keep the current `overwrite` behavior"
+  }
+ ],
+ "drafted": "import inspect\nfrom pathlib import Path\n\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\n\nimport lsdb\n\nROOT = Path(__file__).resolve().parent.parent\nDATA = ROOT / \"tests\" / \"data\"\nSMALL_SKY = DATA / \"small_sky\"\nCOLLECTION = DATA / \"small_sky_order1_source_collection\"\n\n\ndef _parquet_files(base: Path):\n    return sorted(p for p in (base / \"dataset\").rglob(\"*.parquet\") if p.is_file())\n\n\ndef _filename_param():\n    params = inspect.signature(lsdb.catalog.Catalog.write_catalog).parameters\n    for name in params:\n        if name not in (\"catalog_name\", \"default_columns\") and (\"file\" in name or \"name\" in name):\n            return name\n    return None\n\n\ndef test_write_catalog_npix_suffix_slash_creates_npix_directories(tmp_path):\n    \"\"\"Writing with npix_suffix=\"/\" puts each pixel's parquet file inside an Npix=x directory.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    for f in files:\n        assert f.parent.name.startswith(\"Npix=\"), f\n        assert f.parent.parent.name.startswith(\"Dir=\"), f\n\n\ndef test_default_file_name_in_npix_directory(tmp_path):\n    \"\"\"By default the parquet file inside an Npix directory is named 0.parquet.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    assert all(f.name == \"0.parquet\" for f in _parquet_files(out))\n\n\ndef test_default_layout_unchanged_without_npix_suffix(tmp_path):\n    \"\"\"Without npix_suffix the catalog is still written as Npix=x.parquet files.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=False, progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    assert all(f.name.startswith(\"Npix=\") and f.name.endswith(\".parquet\") for f in files)\n\n\ndef test_npix_directory_catalog_reads_back_equal(tmp_path):\n    \"\"\"A catalog written with Npix directories reads back with the same rows and pixels.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    back = lsdb.open_catalog(out)\n    assert back.get_healpix_pixels() == cat.get_healpix_pixels()\n    assert len(back.compute()) == len(cat.compute())\n\n\n@settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])\n@given(name=st.text(alphabet=\"abcdefghij0123456789\", min_size=1, max_size=8))\ndef test_custom_file_name_used_for_every_pixel(tmp_path_factory, name):\n    \"\"\"A custom base file name is used for the parquet file of every pixel.\"\"\"\n    param = _filename_param()\n    if param is None:\n        pytest.skip(\"no file name argument found\")\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path_factory.mktemp(\"o\") / \"out\"\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False, **{param: name})\n    files = _parquet_files(out)\n    assert files\n    assert all(f.stem == name for f in files)\n    back = lsdb.open_catalog(out)\n    assert len(back.compute()) == len(cat.compute())\n\n\ndef test_margin_uses_same_layout_as_main_catalog(tmp_path):\n    \"\"\"The margin catalog is written with the same Npix directory layout as the main catalog.\"\"\"\n    cat = lsdb.open_catalog(COLLECTION)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=True, npix_suffix=\"/\", progress_bar=False)\n    parquets = [p for p in out.rglob(\"*.parquet\") if \"dataset\" in p.parts]\n    assert parquets\n    margin_files = [p for p in parquets if \"margin\" in str(p.relative_to(out))]\n    main_files = [p for p in parquets if p not in margin_files]\n    assert margin_files and main_files\n    for f in margin_files + main_files:\n        assert f.parent.name.startswith(\"Npix=\"), f\n        assert f.name == \"0.parquet\", f\n\n\ndef test_overwrite_behavior_kept(tmp_path):\n    \"\"\"Writing over an existing catalog fails without overwrite and succeeds with overwrite=True.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    with pytest.raises(Exception):\n        cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    cat.write_catalog(out, as_collection=False, npix_suffix=\"/\", progress_bar=False, overwrite=True)\n    assert _parquet_files(out)\n\n\ndef test_to_hats_accepts_npix_suffix(tmp_path):\n    \"\"\"to_hats also accepts npix_suffix=\"/\" and writes Npix directories.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / \"out\"\n    cat.to_hats(out, as_collection=False, npix_suffix=\"/\", progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    assert all(f.parent.name.startswith(\"Npix=\") for f in files)\n",
+ "rules": "import inspect\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nimport lsdb\nROOT = Path(__file__).resolve().parent.parent\nDATA = ROOT / 'tests' / 'data'\nSMALL_SKY = DATA / 'small_sky'\nCOLLECTION = DATA / 'small_sky_order1_source_collection'\n\ndef _parquet_files(base: Path):\n    return sorted((p for p in (base / 'dataset').rglob('*.parquet') if p.is_file()))\n\ndef _filename_param():\n    params = inspect.signature(lsdb.catalog.Catalog.write_catalog).parameters\n    for name in params:\n        if name not in ('catalog_name', 'default_columns') and ('file' in name or 'name' in name):\n            return name\n    return None\n\ndef test_write_catalog_npix_suffix_slash_creates_npix_directories(tmp_path):\n    \"\"\"Writing with npix_suffix=\"/\" puts each pixel's parquet file inside an Npix=x directory.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    for f in files:\n        assert f.parent.name.startswith('Npix='), f\n        assert f.parent.parent.name.startswith('Dir='), f\n\ndef test_default_file_name_in_npix_directory(tmp_path):\n    \"\"\"By default the parquet file inside an Npix directory is named 0.parquet.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    assert all((f.name == '0.parquet' for f in _parquet_files(out)))\n\ndef test_default_layout_unchanged_without_npix_suffix(tmp_path):\n    \"\"\"Without npix_suffix the catalog is still written as Npix=x.parquet files.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=False, progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    assert all((f.name.startswith('Npix=') and f.name.endswith('.parquet') for f in files))\n\ndef test_npix_directory_catalog_reads_back_equal(tmp_path):\n    \"\"\"A catalog written with Npix directories reads back with the same rows and pixels.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    back = lsdb.open_catalog(out)\n    assert back.get_healpix_pixels() == cat.get_healpix_pixels()\n    assert len(back.compute()) == len(cat.compute())\n\n@settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.function_scoped_fixture])\n@given(name=st.text(alphabet='abcdefghij0123456789', min_size=1, max_size=8))\ndef test_custom_file_name_used_for_every_pixel(tmp_path_factory, name):\n    \"\"\"A custom base file name is used for the parquet file of every pixel.\"\"\"\n    param = _filename_param()\n    if param is None:\n        pytest.skip('no file name argument found')\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path_factory.mktemp('o') / 'out'\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False, **{param: name})\n    files = _parquet_files(out)\n    assert files\n    assert all((f.stem == name for f in files))\n    back = lsdb.open_catalog(out)\n    assert len(back.compute()) == len(cat.compute())\n\ndef test_margin_uses_same_layout_as_main_catalog(tmp_path):\n    \"\"\"The margin catalog is written with the same Npix directory layout as the main catalog.\"\"\"\n    cat = lsdb.open_catalog(COLLECTION)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=True, npix_suffix='/', progress_bar=False)\n    parquets = [p for p in out.rglob('*.parquet') if 'dataset' in p.parts]\n    assert parquets\n    margin_files = [p for p in parquets if 'margin' in str(p.relative_to(out))]\n    main_files = [p for p in parquets if p not in margin_files]\n    assert margin_files and main_files\n    for f in margin_files + main_files:\n        assert f.parent.name.startswith('Npix='), f\n        assert f.name == '0.parquet', f\n\ndef test_overwrite_behavior_kept(tmp_path):\n    \"\"\"Writing over an existing catalog fails without overwrite and succeeds with overwrite=True.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    with pytest.raises(Exception):\n        cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    cat.write_catalog(out, as_collection=False, npix_suffix='/', progress_bar=False, overwrite=True)\n    assert _parquet_files(out)\n\ndef test_to_hats_accepts_npix_suffix(tmp_path):\n    \"\"\"to_hats also accepts npix_suffix=\"/\" and writes Npix directories.\"\"\"\n    cat = lsdb.open_catalog(SMALL_SKY)\n    out = tmp_path / 'out'\n    cat.to_hats(out, as_collection=False, npix_suffix='/', progress_bar=False)\n    files = _parquet_files(out)\n    assert files\n    assert all((f.parent.name.startswith('Npix=') for f in files))",
+ "dropped_no_teeth": [],
+ "kept": [
+  "test_custom_file_name_used_for_every_pixel",
+  "test_default_file_name_in_npix_directory",
+  "test_default_layout_unchanged_without_npix_suffix",
+  "test_margin_uses_same_layout_as_main_catalog",
+  "test_npix_directory_catalog_reads_back_equal",
+  "test_overwrite_behavior_kept",
+  "test_to_hats_accepts_npix_suffix",
+  "test_write_catalog_npix_suffix_slash_creates_npix_directories"
+ ],
+ "cost_usd": 0.1051,
+ "rejected_at_approval": [
+  "test_custom_file_name_used_for_every_pixel",
+  "test_default_file_name_in_npix_directory",
+  "test_default_layout_unchanged_without_npix_suffix",
+  "test_margin_uses_same_layout_as_main_catalog",
+  "test_npix_directory_catalog_reads_back_equal",
+  "test_overwrite_behavior_kept",
+  "test_to_hats_accepts_npix_suffix",
+  "test_write_catalog_npix_suffix_slash_creates_npix_directories"
+ ],
+ "approved": "import inspect\nfrom pathlib import Path\nimport pytest\nfrom hypothesis import HealthCheck, given, settings, strategies as st\nimport lsdb\nROOT = Path(__file__).resolve().parent.parent\nDATA = ROOT / 'tests' / 'data'\nSMALL_SKY = DATA / 'small_sky'\nCOLLECTION = DATA / 'small_sky_order1_source_collection'\n\ndef _parquet_files(base: Path):\n    return sorted((p for p in (base / 'dataset').rglob('*.parquet') if p.is_file()))\n\ndef _filename_param():\n    params = inspect.signature(lsdb.catalog.Catalog.write_catalog).parameters\n    for name in params:\n        if name not in ('catalog_name', 'default_columns') and ('file' in name or 'name' in name):\n            return name\n    return None",
+ "approved_count": 0
+}

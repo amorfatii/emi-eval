@@ -1,0 +1,108 @@
+{
+ "task": "hkuds__openharness-217",
+ "model": "sonnet",
+ "questions": [
+  {
+   "q": "Should the http(s) scheme check apply on all platforms (macOS, Linux/WSL too) or only Windows?",
+   "choices": [
+    "All platforms",
+    "Windows only",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "When the URL is rejected (non-http(s) scheme, or empty), what should _try_open_browser do?",
+   "choices": [
+    "Return False quietly, so the caller prints the 'open the URL manually' message",
+    "Return False and log a warning",
+    "Raise ValueError",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "How strict should the URL validation be beyond the scheme?",
+   "choices": [
+    "Scheme only (http/https, case-insensitive)",
+    "Also require a non-empty host",
+    "Also reject URLs containing control characters or whitespace",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "The URL is still printed to the terminal as 'Open: ...' even when it is rejected. Should that change?",
+   "choices": [
+    "Keep printing it as is",
+    "Don't print a rejected URL, and show a warning instead",
+    "Print it, but add a warning that it was not opened automatically",
+    "doesn't matter"
+   ]
+  },
+  {
+   "q": "On Windows, what if os.startfile is unavailable or raises OSError?",
+   "choices": [
+    "Return False, as the existing broad except does",
+    "Fall back to webbrowser.open",
+    "Let the error propagate",
+    "doesn't matter"
+   ]
+  }
+ ],
+ "answers": [
+  {
+   "q": "Should the http(s) scheme check apply on all platforms (macOS, Linux/WSL too) or only Windows?",
+   "choices": null,
+   "choice": "All platforms"
+  },
+  {
+   "q": "When the URL is rejected (non-http(s) scheme, or empty), what should _try_open_browser do?",
+   "choice": "Return False quietly, so the caller prints the 'open the URL manually' message"
+  },
+  {
+   "q": "How strict should the URL validation be beyond the scheme?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "The URL is still printed to the terminal as 'Open: ...' even when it is rejected. Should that change?",
+   "choice": "doesn't matter"
+  },
+  {
+   "q": "On Windows, what if os.startfile is unavailable or raises OSError?",
+   "choice": "Return False, as the existing broad except does"
+  }
+ ],
+ "drafted": "import os\nimport subprocess\nfrom unittest import mock\n\nimport pytest\nfrom hypothesis import given, strategies as st\n\nfrom openharness.auth.flows import DeviceCodeFlow\n\nPLATFORMS = [\"Windows\", \"Darwin\", \"Linux\"]\n\n\nclass _Proc:\n    returncode = 0\n\n    def wait(self, timeout=None):\n        return 0\n\n\ndef _run(plat, url, startfile_side_effect=None):\n    \"\"\"Call _try_open_browser on a faked platform; return (result, popen_mock, startfile_mock).\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    startfile = mock.Mock(side_effect=startfile_side_effect)\n    with mock.patch(\"platform.system\", return_value=plat), \\\n         mock.patch.object(subprocess, \"Popen\", popen), \\\n         mock.patch.object(os, \"startfile\", startfile, create=True):\n        result = DeviceCodeFlow._try_open_browser(url)\n    return result, popen, startfile\n\n\ndef _shell_used(popen):\n    return any(c.kwargs.get(\"shell\") for c in popen.call_args_list)\n\n\ndef test_windows_never_uses_shell_for_malicious_url():\n    \"\"\"On Windows, a URL containing shell metacharacters is never run through a shell.\"\"\"\n    url = \"https://github.com/login/device&calc.exe\"\n    _, popen, _ = _run(\"Windows\", url)\n    assert not _shell_used(popen)\n    assert popen.call_count == 0\n\n\ndef test_windows_opens_url_verbatim_with_startfile():\n    \"\"\"On Windows, a valid http(s) URL is passed unchanged to os.startfile and True is returned.\"\"\"\n    url = \"https://github.com/login/device&calc.exe|x^y\"\n    result, popen, startfile = _run(\"Windows\", url)\n    assert result is True\n    startfile.assert_called_once_with(url)\n    assert popen.call_count == 0\n\n\ndef test_windows_startfile_oserror_returns_false():\n    \"\"\"On Windows, if os.startfile raises OSError, _try_open_browser returns False.\"\"\"\n    result, _, _ = _run(\"Windows\", \"https://github.com/login/device\", startfile_side_effect=OSError(\"boom\"))\n    assert result is False\n\n\ndef test_windows_startfile_unavailable_returns_false():\n    \"\"\"On Windows, if os.startfile is unavailable, _try_open_browser returns False.\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    with mock.patch(\"platform.system\", return_value=\"Windows\"), \\\n         mock.patch.object(subprocess, \"Popen\", popen):\n        if hasattr(os, \"startfile\"):\n            with mock.patch.object(os, \"startfile\", side_effect=AttributeError(\"x\")):\n                result = DeviceCodeFlow._try_open_browser(\"https://github.com/login/device\")\n        else:\n            result = DeviceCodeFlow._try_open_browser(\"https://github.com/login/device\")\n    assert result is False\n    assert not _shell_used(popen)\n\n\ndef test_macos_opens_with_argv_list_without_shell():\n    \"\"\"On macOS, a valid URL is opened via an argv list ['open', url] without a shell.\"\"\"\n    url = \"https://github.com/login/device\"\n    result, popen, _ = _run(\"Darwin\", url)\n    assert result is True\n    assert popen.call_args.args[0] == [\"open\", url]\n    assert not _shell_used(popen)\n\n\ndef test_linux_opens_with_argv_list_without_shell():\n    \"\"\"On Linux, a valid URL is opened via an argv list ['xdg-open', url] without a shell.\"\"\"\n    url = \"https://github.com/login/device\"\n    result, popen, _ = _run(\"Linux\", url)\n    assert result is True\n    assert popen.call_args.args[0] == [\"xdg-open\", url]\n    assert not _shell_used(popen)\n\n\n@pytest.mark.parametrize(\"plat\", PLATFORMS)\n@pytest.mark.parametrize(\n    \"url\",\n    [\n        \"file:///etc/passwd\",\n        \"javascript:alert(1)\",\n        \"calc.exe\",\n        \"ftp://example.com/x\",\n        \"\",\n    ],\n)\ndef test_non_http_or_empty_url_is_rejected_on_all_platforms(plat, url):\n    \"\"\"A non-http(s) or empty URL returns False on every platform and launches nothing.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0\n\n\n@pytest.mark.parametrize(\"plat\", PLATFORMS)\n@pytest.mark.parametrize(\"scheme\", [\"http\", \"https\"])\ndef test_http_and_https_urls_are_accepted(plat, scheme):\n    \"\"\"An http or https URL is accepted and opened on every platform.\"\"\"\n    result, popen, startfile = _run(plat, f\"{scheme}://example.com/device\")\n    assert result is True\n    assert popen.call_count + startfile.call_count == 1\n\n\n@given(\n    url=st.text(max_size=60).filter(\n        lambda s: not s.lower().startswith((\"http://\", \"https://\"))\n    ),\n    plat=st.sampled_from(PLATFORMS),\n)\ndef test_property_non_http_urls_never_reach_a_launcher(url, plat):\n    \"\"\"For any URL that is not http(s), no launcher is invoked and False is returned.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0\n\n\n@given(\n    suffix=st.text(\n        alphabet=st.characters(blacklist_categories=(\"Cs\",), blacklist_characters=\"\\x00\"),\n        max_size=60,\n    ),\n    scheme=st.sampled_from([\"http://\", \"https://\"]),\n)\ndef test_property_windows_never_shells_and_passes_url_verbatim(suffix, scheme):\n    \"\"\"For any http(s) URL on Windows, no shell is used and os.startfile receives the exact URL.\"\"\"\n    url = scheme + suffix\n    result, popen, startfile = _run(\"Windows\", url)\n    assert not _shell_used(popen)\n    assert popen.call_count == 0\n    if startfile.call_count:\n        startfile.assert_called_once_with(url)\n        assert result is True\n",
+ "cost_usd": 0.0984,
+ "passing_on_baseline": [
+  "test_http_and_https_urls_are_accepted",
+  "test_linux_opens_with_argv_list_without_shell",
+  "test_macos_opens_with_argv_list_without_shell"
+ ],
+ "passing_on_fix": [
+  "test_http_and_https_urls_are_accepted",
+  "test_linux_opens_with_argv_list_without_shell",
+  "test_macos_opens_with_argv_list_without_shell",
+  "test_non_http_or_empty_url_is_rejected_on_all_platforms",
+  "test_property_non_http_urls_never_reach_a_launcher",
+  "test_windows_opens_url_verbatim_with_startfile",
+  "test_windows_startfile_oserror_returns_false",
+  "test_windows_startfile_unavailable_returns_false"
+ ],
+ "rules": "import os\nimport subprocess\nfrom unittest import mock\nimport pytest\nfrom hypothesis import given, strategies as st\nfrom openharness.auth.flows import DeviceCodeFlow\nPLATFORMS = ['Windows', 'Darwin', 'Linux']\n\nclass _Proc:\n    returncode = 0\n\n    def wait(self, timeout=None):\n        return 0\n\ndef _run(plat, url, startfile_side_effect=None):\n    \"\"\"Call _try_open_browser on a faked platform; return (result, popen_mock, startfile_mock).\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    startfile = mock.Mock(side_effect=startfile_side_effect)\n    with mock.patch('platform.system', return_value=plat), mock.patch.object(subprocess, 'Popen', popen), mock.patch.object(os, 'startfile', startfile, create=True):\n        result = DeviceCodeFlow._try_open_browser(url)\n    return (result, popen, startfile)\n\ndef _shell_used(popen):\n    return any((c.kwargs.get('shell') for c in popen.call_args_list))\n\ndef test_windows_opens_url_verbatim_with_startfile():\n    \"\"\"On Windows, a valid http(s) URL is passed unchanged to os.startfile and True is returned.\"\"\"\n    url = 'https://github.com/login/device&calc.exe|x^y'\n    result, popen, startfile = _run('Windows', url)\n    assert result is True\n    startfile.assert_called_once_with(url)\n    assert popen.call_count == 0\n\ndef test_windows_startfile_oserror_returns_false():\n    \"\"\"On Windows, if os.startfile raises OSError, _try_open_browser returns False.\"\"\"\n    result, _, _ = _run('Windows', 'https://github.com/login/device', startfile_side_effect=OSError('boom'))\n    assert result is False\n\ndef test_windows_startfile_unavailable_returns_false():\n    \"\"\"On Windows, if os.startfile is unavailable, _try_open_browser returns False.\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    with mock.patch('platform.system', return_value='Windows'), mock.patch.object(subprocess, 'Popen', popen):\n        if hasattr(os, 'startfile'):\n            with mock.patch.object(os, 'startfile', side_effect=AttributeError('x')):\n                result = DeviceCodeFlow._try_open_browser('https://github.com/login/device')\n        else:\n            result = DeviceCodeFlow._try_open_browser('https://github.com/login/device')\n    assert result is False\n    assert not _shell_used(popen)\n\ndef test_macos_opens_with_argv_list_without_shell():\n    \"\"\"On macOS, a valid URL is opened via an argv list ['open', url] without a shell.\"\"\"\n    url = 'https://github.com/login/device'\n    result, popen, _ = _run('Darwin', url)\n    assert result is True\n    assert popen.call_args.args[0] == ['open', url]\n    assert not _shell_used(popen)\n\ndef test_linux_opens_with_argv_list_without_shell():\n    \"\"\"On Linux, a valid URL is opened via an argv list ['xdg-open', url] without a shell.\"\"\"\n    url = 'https://github.com/login/device'\n    result, popen, _ = _run('Linux', url)\n    assert result is True\n    assert popen.call_args.args[0] == ['xdg-open', url]\n    assert not _shell_used(popen)\n\n@pytest.mark.parametrize('plat', PLATFORMS)\n@pytest.mark.parametrize('url', ['file:///etc/passwd', 'javascript:alert(1)', 'calc.exe', 'ftp://example.com/x', ''])\ndef test_non_http_or_empty_url_is_rejected_on_all_platforms(plat, url):\n    \"\"\"A non-http(s) or empty URL returns False on every platform and launches nothing.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0\n\n@pytest.mark.parametrize('plat', PLATFORMS)\n@pytest.mark.parametrize('scheme', ['http', 'https'])\ndef test_http_and_https_urls_are_accepted(plat, scheme):\n    \"\"\"An http or https URL is accepted and opened on every platform.\"\"\"\n    result, popen, startfile = _run(plat, f'{scheme}://example.com/device')\n    assert result is True\n    assert popen.call_count + startfile.call_count == 1\n\n@given(url=st.text(max_size=60).filter(lambda s: not s.lower().startswith(('http://', 'https://'))), plat=st.sampled_from(PLATFORMS))\ndef test_property_non_http_urls_never_reach_a_launcher(url, plat):\n    \"\"\"For any URL that is not http(s), no launcher is invoked and False is returned.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0",
+ "dropped_no_teeth": [
+  "test_property_windows_never_shells_and_passes_url_verbatim",
+  "test_windows_never_uses_shell_for_malicious_url"
+ ],
+ "kept": [
+  "test_http_and_https_urls_are_accepted",
+  "test_linux_opens_with_argv_list_without_shell",
+  "test_macos_opens_with_argv_list_without_shell",
+  "test_non_http_or_empty_url_is_rejected_on_all_platforms",
+  "test_property_non_http_urls_never_reach_a_launcher",
+  "test_windows_opens_url_verbatim_with_startfile",
+  "test_windows_startfile_oserror_returns_false",
+  "test_windows_startfile_unavailable_returns_false"
+ ],
+ "rejected_at_approval": [],
+ "approved": "import os\nimport subprocess\nfrom unittest import mock\nimport pytest\nfrom hypothesis import given, strategies as st\nfrom openharness.auth.flows import DeviceCodeFlow\nPLATFORMS = ['Windows', 'Darwin', 'Linux']\n\nclass _Proc:\n    returncode = 0\n\n    def wait(self, timeout=None):\n        return 0\n\ndef _run(plat, url, startfile_side_effect=None):\n    \"\"\"Call _try_open_browser on a faked platform; return (result, popen_mock, startfile_mock).\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    startfile = mock.Mock(side_effect=startfile_side_effect)\n    with mock.patch('platform.system', return_value=plat), mock.patch.object(subprocess, 'Popen', popen), mock.patch.object(os, 'startfile', startfile, create=True):\n        result = DeviceCodeFlow._try_open_browser(url)\n    return (result, popen, startfile)\n\ndef _shell_used(popen):\n    return any((c.kwargs.get('shell') for c in popen.call_args_list))\n\ndef test_windows_opens_url_verbatim_with_startfile():\n    \"\"\"On Windows, a valid http(s) URL is passed unchanged to os.startfile and True is returned.\"\"\"\n    url = 'https://github.com/login/device&calc.exe|x^y'\n    result, popen, startfile = _run('Windows', url)\n    assert result is True\n    startfile.assert_called_once_with(url)\n    assert popen.call_count == 0\n\ndef test_windows_startfile_oserror_returns_false():\n    \"\"\"On Windows, if os.startfile raises OSError, _try_open_browser returns False.\"\"\"\n    result, _, _ = _run('Windows', 'https://github.com/login/device', startfile_side_effect=OSError('boom'))\n    assert result is False\n\ndef test_windows_startfile_unavailable_returns_false():\n    \"\"\"On Windows, if os.startfile is unavailable, _try_open_browser returns False.\"\"\"\n    popen = mock.Mock(return_value=_Proc())\n    with mock.patch('platform.system', return_value='Windows'), mock.patch.object(subprocess, 'Popen', popen):\n        if hasattr(os, 'startfile'):\n            with mock.patch.object(os, 'startfile', side_effect=AttributeError('x')):\n                result = DeviceCodeFlow._try_open_browser('https://github.com/login/device')\n        else:\n            result = DeviceCodeFlow._try_open_browser('https://github.com/login/device')\n    assert result is False\n    assert not _shell_used(popen)\n\ndef test_macos_opens_with_argv_list_without_shell():\n    \"\"\"On macOS, a valid URL is opened via an argv list ['open', url] without a shell.\"\"\"\n    url = 'https://github.com/login/device'\n    result, popen, _ = _run('Darwin', url)\n    assert result is True\n    assert popen.call_args.args[0] == ['open', url]\n    assert not _shell_used(popen)\n\ndef test_linux_opens_with_argv_list_without_shell():\n    \"\"\"On Linux, a valid URL is opened via an argv list ['xdg-open', url] without a shell.\"\"\"\n    url = 'https://github.com/login/device'\n    result, popen, _ = _run('Linux', url)\n    assert result is True\n    assert popen.call_args.args[0] == ['xdg-open', url]\n    assert not _shell_used(popen)\n\n@pytest.mark.parametrize('plat', PLATFORMS)\n@pytest.mark.parametrize('url', ['file:///etc/passwd', 'javascript:alert(1)', 'calc.exe', 'ftp://example.com/x', ''])\ndef test_non_http_or_empty_url_is_rejected_on_all_platforms(plat, url):\n    \"\"\"A non-http(s) or empty URL returns False on every platform and launches nothing.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0\n\n@pytest.mark.parametrize('plat', PLATFORMS)\n@pytest.mark.parametrize('scheme', ['http', 'https'])\ndef test_http_and_https_urls_are_accepted(plat, scheme):\n    \"\"\"An http or https URL is accepted and opened on every platform.\"\"\"\n    result, popen, startfile = _run(plat, f'{scheme}://example.com/device')\n    assert result is True\n    assert popen.call_count + startfile.call_count == 1\n\n@given(url=st.text(max_size=60).filter(lambda s: not s.lower().startswith(('http://', 'https://'))), plat=st.sampled_from(PLATFORMS))\ndef test_property_non_http_urls_never_reach_a_launcher(url, plat):\n    \"\"\"For any URL that is not http(s), no launcher is invoked and False is returned.\"\"\"\n    result, popen, startfile = _run(plat, url)\n    assert result is False\n    assert popen.call_count == 0\n    assert startfile.call_count == 0",
+ "approved_count": 8
+}
