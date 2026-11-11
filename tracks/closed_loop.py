@@ -110,9 +110,12 @@ with tempfile.TemporaryDirectory() as tmp:
             if f in RUNNER and rel not in base and not rel.startswith(".venv"):
                 os.unlink(os.path.join(root, f))
     env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTEST", "PYTHON"))}
-    env.update({"PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1"})
-    out = subprocess.run([os.path.join(dest, ".venv/bin/python"), "-m", "pytest", "-q", "-p", "no:cacheprovider"],
-                         cwd=dest, env=env, capture_output=True, text=True, timeout=600)
+    roots = [os.path.join(dest, "src")] if os.path.isdir(os.path.join(dest, "src")) else []
+    env.update({"PYTHONHASHSEED": "0", "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTHONPATH": os.pathsep.join(roots + [dest])})
+    args = json.loads(os.environ.get("EVAL_TEST_ARGS", '["-q"]'))
+    out = subprocess.run([os.path.join(dest, ".venv/bin/python"), "-m", "pytest", "-p", "no:cacheprovider", *args],
+                         cwd=dest, env=env, capture_output=True, text=True, timeout=900)
 ok = out.returncode == 0
 blocks = sum(1 for p in past if p["blocked"])
 block = not ok and blocks < ROUNDS
@@ -184,43 +187,59 @@ def touched_lab(events: list[dict]) -> bool:
     return False
 
 
+class Synthetic:
+    """A discrimination task: a small project, plain-python hidden checks."""
+
+    def __init__(self, task):
+        self.task, self.id, self.prompt = task, task.id, task.prompt + NOTE
+        self.test_args = ["-q"]
+
+    def build(self, root: Path, emi: str, laws: dict | None, work: Path) -> Path:
+        self.venv = ensure_venv(work / "venv", self.task.pip)
+        ws = Workspace(root, emi, self.venv)
+        ws.build(self.task.files, laws, CONDITIONS["tests_only"].config, setup=self.task.setup)
+        return ws.repo
+
+    def env(self, repo: Path) -> dict:
+        return {}
+
+    def grade(self, tree: Path) -> dict:
+        return gates.run_oracle(tree, self.venv / "bin" / "python", self.task.oracle, self.task.python_path)
+
+
 def run_one(task, setup: str, run: int, args) -> dict:
     root = args.work / "closed_loop" / f"{task.id}__{setup}__{run}"
-    venv = ensure_venv(args.work / "venv", task.pip)
-    ws = Workspace(root, args.emi, venv)
     laws = None
     if setup == "emi_rules":
         rules = args.drafted / task.id / RULES_FILE
         if not rules.exists():
             raise SystemExit(f"{task.id}: no drafted rules; run tracks.draft_rules first")
         laws = {RULES_FILE: rules.read_text()}
-    ws.build(task.files, laws, CONDITIONS["tests_only"].config, setup=task.setup)
+    repo = task.build(root, args.emi, laws, args.work)
     snaps, state = root / "snapshots", root / "state"
     snaps.mkdir(parents=True, exist_ok=True)
     env = {k: v for k, v in os.environ.items()
            if not k.startswith("EMI_") and k != "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD"}
     env.update({"XDG_STATE_HOME": str(state), "EVAL_SNAPSHOTS": str(snaps),
-                "EVAL_SCRIPT_LOG": str(root / "script.jsonl"), "EMI_HOOK_WARM": "0"})
-    hooks_settings(ws.repo, root, setup, args.emi, env)
-    cmd = ["claude", "-p", task.prompt + NOTE, "--output-format", "stream-json", "--verbose",
+                "EVAL_SCRIPT_LOG": str(root / "script.jsonl"), "EMI_HOOK_WARM": "0",
+                "EVAL_TEST_ARGS": json.dumps(task.test_args), **task.env(repo)})
+    hooks_settings(repo, root, setup, args.emi, env)
+    cmd = ["claude", "-p", task.prompt, "--output-format", "stream-json", "--verbose",
            "--model", args.model, "--max-turns", str(args.max_turns), "--max-budget-usd", str(args.budget),
            "--permission-mode", "dontAsk", "--tools", TOOLS, "--allowedTools", ALLOWED,
            "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
            "--disable-slash-commands", "--no-chrome", "--no-session-persistence"]
     t0 = time.monotonic()
     try:
-        proc = subprocess.run(cmd, cwd=ws.repo, env=env, capture_output=True, text=True, timeout=args.timeout)
+        proc = subprocess.run(cmd, cwd=repo, env=env, capture_output=True, text=True, timeout=args.timeout)
         lines, timed_out = proc.stdout.splitlines(), False
     except subprocess.TimeoutExpired as e:
         lines, timed_out = (e.stdout or b"").decode(errors="replace").splitlines(), True
     wall = time.monotonic() - t0
     (root / "transcript.jsonl").write_text("\n".join(lines) + "\n")
     result, events = transcript_result(lines)
-    python = venv / "bin" / "python"
-    stops = []
-    for snap in sorted(p for p in snaps.iterdir() if p.is_dir()):
-        stops.append(gates.run_oracle(snap, python, task.oracle, task.python_path)["correct"])
-    final = gates.run_oracle(ws.repo, python, task.oracle, task.python_path)
+    stops = [task.grade(snap)["correct"] for snap in sorted(p for p in snaps.iterdir() if p.is_dir())]
+    final = task.grade(repo)
     # what the setup's checker said at each stop
     if setup == "script":
         verdicts = read_jsonl(root / "script.jsonl")
@@ -268,13 +287,19 @@ def main(argv=None) -> int:
     ap.add_argument("--budget", type=float, default=3.0, help="per run, in USD")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--hard", type=Path, help="inputs-hard: run its validated real-project tasks instead")
     args = ap.parse_args(argv)
     if not shutil.which("claude"):
         raise SystemExit("needs the `claude` CLI, logged in")
     args.work = args.work.resolve()
     args.drafted = args.drafted.resolve()
     args.out.mkdir(parents=True, exist_ok=True)
-    tasks = [t for t in DISCRIMINATION if t.kind != "refactor" and (not args.only or t.id in args.only)]
+    if args.hard:
+        from tracks.real_tasks import load
+        tasks = [t for t in load(args.hard, args.work) if not args.only or t.id in args.only]
+    else:
+        tasks = [Synthetic(t) for t in DISCRIMINATION
+                 if t.kind != "refactor" and (not args.only or t.id in args.only)]
     for run in range(args.runs):
         for task in tasks:
             # rotate the setup order per task and run, against drift in the model service
